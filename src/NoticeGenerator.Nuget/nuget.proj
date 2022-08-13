@@ -42,7 +42,7 @@
   </Target>
 
   <Target Name="RunTool" AfterTargets="Build" DependsOnTargets="GetBuildVersion">
-    <Exec Command="$(NugetExePath) pack @(NuSpec) -Version $(NuGetPackageVersion) -NonInteractive -Properties Configuration=$(Configuration);TargetFramework=$(TargetFramework);NoticeFileName=$(NoticeFileName)"
+    <Exec Command="$(NugetExePath) pack @(NuSpec) -Version $(NuGetPackageVersion) -NonInteractive -Properties &quot;Configuration=$(Configuration);TargetFramework=$(TargetFramework);NoticeFileName=$(NoticeFileName)&quot;"
           WorkingDirectory="$(MSBuildProjectDirectory)" />
   </Target>
 </Project>
