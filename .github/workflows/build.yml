@@ -1,0 +1,55 @@
+name: Build
+
+on:
+  push:
+    tags:
+    - 'latest'
+    - 'v*'
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: 'Build'
+    runs-on: ubuntu-latest
+
+    env:
+      # don't print dotnet logo
+      DOTNET_NOLOGO: true
+
+      # disable telemetry (reduces dotnet tool output in logs)
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
+
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v2
+      
+      - name: Build sln
+        run: dotnet build --configuration Release
+
+      - name: Publish GenerateNotice tool
+        run: dotnet publish --configuration Release ./src/NoticeGenerator/NoticeGenerator.csproj
+      
+      - name: Build package
+        run: dotnet build --configuration Release ./src/NoticeGenerator.Nuget/nuget.proj
+
+      - name: Upload GenerateNotice package
+        uses: actions/upload-artifact@v3
+        with:
+          name: GenerateNotice-package
+          path: ./src/NoticeGenerator.Nuget/*.nupkg
+          if-no-files-found: error
+
+      - name: Test
+        run: dotnet test --configuration Release --collect:"XPlat Code Coverage" --settings ./.github/workflows/codecov.runsettings
+
+      - name: Upload Code Coverage
+        uses: codecov/codecov-action@v3
+        with:
+          flags: dotnet
