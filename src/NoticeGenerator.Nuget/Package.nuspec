@@ -17,8 +17,7 @@
     <!-- nuget convention requires .props and .targets file name to match package ID -->
     <file src="build\Azure.Bicep.Tools.GenerateNotice.props" target="build\Azure.Bicep.Tools.GenerateNotice.props" />
     <file src="build\Azure.Bicep.Tools.GenerateNotice.targets" target="build\Azure.Bicep.Tools.GenerateNotice.targets" />
-    <file src="..\NoticeGenerator\bin\$Configuration$\$TargetFramework$\publish\**" target="tools\" />
-
+    <!-- <file src="..\NoticeGenerator\bin\$Configuration$\$TargetFramework$\publish\**" target="tools\" /> -->
     <file src="obj\$Configuration$\$TargetFramework$\$NoticeFileName$" target="$NoticeFileName$" />
   </files>
 </package>
