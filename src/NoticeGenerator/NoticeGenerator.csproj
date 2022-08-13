@@ -4,10 +4,8 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>Azure.Bicep.Tools.NoticeGenerator</AssemblyName>
+    <AssemblyName>NoticeGenerator</AssemblyName>
     <RootNamespace>Azure.Bicep.Tools.NoticeGenerator</RootNamespace>
-    <PackAsTool>true</PackAsTool>
-    <Description>Tool to generate third party notice files</Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,14 +13,6 @@
     <PackageReference Include="System.CommandLine.Hosting" Version="0.4.0-alpha.22114.1" />
     <PackageReference Include="System.Net.Http.Json" Version="6.0.0" />
     <PackageReference Include="System.Text.Json" Version="6.0.5" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="build\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="build\$(AssemblyName).*" PackagePath="build\" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
