@@ -31,13 +31,13 @@ jobs:
         uses: actions/setup-dotnet@v2
       
       - name: Build sln
-        run: dotnet build --configuration release
+        run: dotnet build --configuration Release
 
       - name: Publish GenerateNotice tool
-        run: dotnet publish --configuration release ./src/NoticeGenerator/NoticeGenerator.csproj
+        run: dotnet publish --configuration Release ./src/NoticeGenerator/NoticeGenerator.csproj
       
       - name: Build package
-        run: dotnet build --configuration release ./src/NoticeGenerator.Nuget/nuget.proj
+        run: dotnet build --configuration Release ./src/NoticeGenerator.Nuget/nuget.proj
 
       - name: Upload GenerateNotice package
         uses: actions/upload-artifact@v3
@@ -47,7 +47,7 @@ jobs:
           if-no-files-found: error
 
       - name: Test
-        run: dotnet test --configuration release --collect:"XPlat Code Coverage" --settings ./.github/workflows/codecov.runsettings
+        run: dotnet test --configuration Release --collect:"XPlat Code Coverage" --settings ./.github/workflows/codecov.runsettings
 
       - name: Upload Code Coverage
         uses: codecov/codecov-action@v3
