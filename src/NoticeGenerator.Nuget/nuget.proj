@@ -14,7 +14,7 @@
     <NugetExePath>$(PkgNuGet_CommandLine)\tools\NuGet.exe</NugetExePath>
     <NugetExePath Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' == 'true'">mono $(NugetExePath)</NugetExePath>
 
-    <NoticeGeneratorBinariesDirectory>$(MSBuildProjectDirectory)\..\NoticeGenerator\bin\Debug\net6.0\publish</NoticeGeneratorBinariesDirectory>
+    <NoticeGeneratorBinariesDirectory>$(MSBuildProjectDirectory)\..\NoticeGenerator\bin\$(Configuration)\$(TargetFramework)\publish</NoticeGeneratorBinariesDirectory>
     <NoticeGeneratorAssemblyPath>$(NoticeGeneratorBinariesDirectory)\NoticeGenerator.dll</NoticeGeneratorAssemblyPath>
 
     <NoticeGeneratorCliAssetsFile>$(MSBuildProjectDirectory)\..\NoticeGenerator\obj\project.assets.json</NoticeGeneratorCliAssetsFile>
