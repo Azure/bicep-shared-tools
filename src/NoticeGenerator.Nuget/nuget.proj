@@ -1,10 +1,9 @@
 <!--
-  This project pulls down the setup compiler from a nuget and invokes it to build the setup exe.
-  It depends on the published self-contained bicep.exe and bicep.pdb to be placed in a bicep subfolder.
-  During the CI build, this happens via artifact download action.
+  This project packages the NoticeGenerator.exe in a NuGet package but not as a .net tool.
+  (Normal csproj files cannot import targets from dotnet tool packages.)
 
   Prerequisites:
-  - Copy bicep.exe and *.pdb from Bicep CLI publish directory to tools\ directory under this project.
+  - Run dotnet publish on the NoticeGenerator project.
 -->
 <Project Sdk="Microsoft.Build.NoTargets">
   <PropertyGroup>
@@ -15,11 +14,11 @@
     <NugetExePath>$(PkgNuGet_CommandLine)\tools\NuGet.exe</NugetExePath>
     <NugetExePath Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' == 'true'">mono $(NugetExePath)</NugetExePath>
 
-    <BicepBinariesDirectory>$(MSBuildProjectDirectory)\..\NoticeGenerator\bin\Debug\net6.0\publish</BicepBinariesDirectory>
-    <BicepExePathWindows>$(BicepBinariesDirectory)\NoticeGenerator.exe</BicepExePathWindows>
-    <BicepExePathNonWindows>$(BicepBinariesDirectory)\NoticeGenerator</BicepExePathNonWindows>
+    <NoticeGeneratorBinariesDirectory>$(MSBuildProjectDirectory)\..\NoticeGenerator\bin\Debug\net6.0\publish</NoticeGeneratorBinariesDirectory>
+    <NoticeGeneratorExePathWindows>$(NoticeGeneratorBinariesDirectory)\NoticeGenerator.exe</NoticeGeneratorExePathWindows>
+    <NoticeGeneratorExePathNonWindows>$(NoticeGeneratorBinariesDirectory)\NoticeGenerator</NoticeGeneratorExePathNonWindows>
 
-    <BicepCliAssetsFile>$(MSBuildProjectDirectory)\..\NoticeGenerator\obj\project.assets.json</BicepCliAssetsFile>
+    <NoticeGeneratorCliAssetsFile>$(MSBuildProjectDirectory)\..\NoticeGenerator\obj\project.assets.json</NoticeGeneratorCliAssetsFile>
     <NoticeFileName>NOTICE.txt</NoticeFileName>
   </PropertyGroup>
 
@@ -35,23 +34,23 @@
   </ItemGroup>
 
   <ItemGroup>
-    <BicepExecutable Include="$(BicepExePathWindows)" Condition=" Exists('$(BicepExePathWindows)') " />
-    <BicepExecutable Include="$(BicepExePathNonWindows)" Condition= " Exists('$(BicepExePathNonWindows)') " />
+    <NoticeGeneratorExecutable Include="$(NoticeGeneratorExePathWindows)" Condition=" Exists('$(NoticeGeneratorExePathWindows)') " />
+    <NoticeGeneratorExecutable Include="$(NoticeGeneratorExePathNonWindows)" Condition= " Exists('$(NoticeGeneratorExePathNonWindows)') " />
   </ItemGroup>
 
-  <Target Name="GenerateNotice" BeforeTargets="RunTool" Inputs="$(BicepCliAssetsFile)" Outputs="$(IntermediateOutputPath)$(NoticeFileName)">
-    <Error Text="Unexpected number of NoticeGenerator executables found: @(BicepExecutable->Count())" Condition=" @(BicepExecutable->Count()) != 1 " />
+  <Target Name="GenerateNotice" BeforeTargets="RunTool" Inputs="$(NoticeGeneratorCliAssetsFile)" Outputs="$(IntermediateOutputPath)$(NoticeFileName)">
+    <Error Text="Unexpected number of NoticeGenerator executables found: @(NoticeGeneratorExecutable->Count())" Condition=" @(NoticeGeneratorExecutable->Count()) != 1 " />
 
-    <Error Condition="!Exists('@(BicepExecutable)')" Text="Could not find the notice generator tool at '@(BicepExecutable)'." />
-    <Error Condition="!Exists('$(BicepCliAssetsFile)')" Text="Could not find the NoticeGenerator project assets file at '$(BicepCliAssetsFile)'." />
+    <Error Condition="!Exists('@(NoticeGeneratorExecutable)')" Text="Could not find the notice generator tool at '@(NoticeGeneratorExecutable)'." />
+    <Error Condition="!Exists('$(NoticeGeneratorCliAssetsFile)')" Text="Could not find the NoticeGenerator project assets file at '$(NoticeGeneratorCliAssetsFile)'." />
 
     <Exec 
-      Command="@(BicepExecutable) --asset-files $(BicepCliAssetsFile) --output-file $(IntermediateOutputPath)$(NoticeFileName)"
+      Command="@(NoticeGeneratorExecutable) --asset-files $(NoticeGeneratorCliAssetsFile) --output-file $(IntermediateOutputPath)$(NoticeFileName)"
       WorkingDirectory="$(MSBuildProjectDirectory)" />
   </Target>
 
   <Target Name="RunTool" AfterTargets="Build" DependsOnTargets="GetBuildVersion">
-    <Error Text="Unexpected number of bicep executables found: @(BicepExecutable->Count())" Condition=" @(BicepExecutable->Count()) != 1 " />
+    <Error Text="Unexpected number of NoticeGenerator executables found: @(NoticeGeneratorExecutable->Count())" Condition=" @(NoticeGeneratorExecutable->Count()) != 1 " />
 
     <Exec Command="$(NugetExePath) pack @(NuSpec) -Version $(NuGetPackageVersion) -NonInteractive -Properties NoticeFileName=$(NoticeFileName);Configuration=$(Configuration);TargetFramework=$(TargetFramework)"
           WorkingDirectory="$(MSBuildProjectDirectory)" />
