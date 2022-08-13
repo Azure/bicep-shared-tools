@@ -15,8 +15,7 @@
     <NugetExePath Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' == 'true'">mono $(NugetExePath)</NugetExePath>
 
     <NoticeGeneratorBinariesDirectory>$(MSBuildProjectDirectory)\..\NoticeGenerator\bin\Debug\net6.0\publish</NoticeGeneratorBinariesDirectory>
-    <NoticeGeneratorExePathWindows>$(NoticeGeneratorBinariesDirectory)\NoticeGenerator.exe</NoticeGeneratorExePathWindows>
-    <NoticeGeneratorExePathNonWindows>$(NoticeGeneratorBinariesDirectory)\NoticeGenerator</NoticeGeneratorExePathNonWindows>
+    <NoticeGeneratorAssemblyPath>$(NoticeGeneratorBinariesDirectory)\NoticeGenerator.dll</NoticeGeneratorAssemblyPath>
 
     <NoticeGeneratorCliAssetsFile>$(MSBuildProjectDirectory)\..\NoticeGenerator\obj\project.assets.json</NoticeGeneratorCliAssetsFile>
     <NoticeFileName>NOTICE.txt</NoticeFileName>
@@ -33,25 +32,16 @@
     <NuSpec Include="Package.nuspec" />
   </ItemGroup>
 
-  <ItemGroup>
-    <NoticeGeneratorExecutable Include="$(NoticeGeneratorExePathWindows)" Condition=" Exists('$(NoticeGeneratorExePathWindows)') " />
-    <NoticeGeneratorExecutable Include="$(NoticeGeneratorExePathNonWindows)" Condition= " Exists('$(NoticeGeneratorExePathNonWindows)') " />
-  </ItemGroup>
-
   <Target Name="GenerateNotice" BeforeTargets="RunTool" Inputs="$(NoticeGeneratorCliAssetsFile)" Outputs="$(IntermediateOutputPath)$(NoticeFileName)">
-    <Error Text="Unexpected number of NoticeGenerator executables found: @(NoticeGeneratorExecutable->Count())" Condition=" @(NoticeGeneratorExecutable->Count()) != 1 " />
-
-    <Error Condition="!Exists('@(NoticeGeneratorExecutable)')" Text="Could not find the notice generator tool at '@(NoticeGeneratorExecutable)'." />
+    <Error Condition="!Exists('$(NoticeGeneratorAssemblyPath)')" Text="Could not find the notice generator tool at '$(NoticeGeneratorAssemblyPath)'." />
     <Error Condition="!Exists('$(NoticeGeneratorCliAssetsFile)')" Text="Could not find the NoticeGenerator project assets file at '$(NoticeGeneratorCliAssetsFile)'." />
 
     <Exec 
-      Command="@(NoticeGeneratorExecutable) --asset-files $(NoticeGeneratorCliAssetsFile) --output-file $(IntermediateOutputPath)$(NoticeFileName)"
+      Command="dotnet $(NoticeGeneratorAssemblyPath) --asset-files $(NoticeGeneratorCliAssetsFile) --output-file $(IntermediateOutputPath)$(NoticeFileName)"
       WorkingDirectory="$(MSBuildProjectDirectory)" />
   </Target>
 
   <Target Name="RunTool" AfterTargets="Build" DependsOnTargets="GetBuildVersion">
-    <Error Text="Unexpected number of NoticeGenerator executables found: @(NoticeGeneratorExecutable->Count())" Condition=" @(NoticeGeneratorExecutable->Count()) != 1 " />
-
     <Exec Command="$(NugetExePath) pack @(NuSpec) -Version $(NuGetPackageVersion) -NonInteractive -Properties NoticeFileName=$(NoticeFileName);Configuration=$(Configuration);TargetFramework=$(TargetFramework)"
           WorkingDirectory="$(MSBuildProjectDirectory)" />
   </Target>
