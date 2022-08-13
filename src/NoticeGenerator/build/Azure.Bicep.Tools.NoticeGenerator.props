@@ -1,0 +1,5 @@
+<Project>
+  <PropertyGroup>
+    <NoticeGeneratorAssemblyPath>$(MSBuildThisFileDirectory)..\tools\net6.0\any\Azure.Bicep.Tools.NoticeGenerator.dll</NoticeGeneratorDirectory>
+  </PropertyGroup>
+</Project>
