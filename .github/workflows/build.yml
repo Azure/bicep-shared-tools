@@ -43,7 +43,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: GenerateNotice-package
-          path: ./src/NoticeGenerator.Nuget*.nupkg
+          path: ./src/NoticeGenerator.Nuget/*.nupkg
           if-no-files-found: error
 
       - name: Test
