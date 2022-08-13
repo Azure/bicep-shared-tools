@@ -30,17 +30,20 @@ jobs:
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v2
       
-      - name: Build
+      - name: Build sln
         run: dotnet build --configuration release
 
-      - name: Pack
-        run: dotnet pack --configuration release
+      - name: Publish GenerateNotice tool
+        run: dotnet publish --configuration release ./src/NoticeGenerator/NoticeGenerator.csproj
+      
+      - name: Build package
+        run: dotnet build --configuration release ./src/NoticeGenerator.Nuget/nuget.proj
 
-      - name: Upload Nuget packages
+      - name: Upload GenerateNotice package
         uses: actions/upload-artifact@v3
         with:
-          name: bicep-shared-tools-packages
-          path: ./out/*
+          name: GenerateNotice-package
+          path: ./src/NoticeGenerator.Nuget*.nupkg
           if-no-files-found: error
 
       - name: Test
