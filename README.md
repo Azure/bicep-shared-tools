@@ -1,14 +1,6 @@
-# Project
-
-> This repo has been populated by an initial template to help get you started. Please
-> make sure to update the content to build a great experience for community-building.
-
-As the maintainer of this project, please make a few updates:
-
-- Improving this README.MD file to provide a great experience
-- Updating SUPPORT.MD with content about this project's support experience
-- Understanding the security reporting process in SECURITY.MD
-- Remove this section from the README
+[![Build](https://github.com/Azure/bicep-shared-tools/actions/workflows/build.yml/badge.svg)](https://github.com/Azure/bicep-shared-tools/actions/workflows/build.yml) [![codecov](https://codecov.io/gh/Azure/bicep-shared-tools/branch/main/graph/badge.svg)](https://codecov.io/gh/Azure/bicep-shared-tools) [![Build Status](https://msazure.visualstudio.com/One/_apis/build/status/OneBranch/BicepMirror-Shared-Tools/BicepMirror-Shared-Tools-Official?repoName=BicepMirror-Shared-Tools&branchName=main)](https://msazure.visualstudio.com/One/_build/latest?definitionId=285994&repoName=BicepMirror-Shared-Tools&branchName=main)
+# bicep-shared-tools
+Tools shared between various Bicep-related repositories.
 
 ## Contributing
 
@@ -25,7 +17,6 @@ For more information see the [Code of Conduct FAQ](https://opensource.microsoft.
 contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
 ## Trademarks
-
 This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft 
 trademarks or logos is subject to and must follow 
 [Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general).
