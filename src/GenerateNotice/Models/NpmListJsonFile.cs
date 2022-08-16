@@ -3,7 +3,7 @@
 
 using System.Collections.Immutable;
 
-namespace OSS.NoticeGenerator.Models
+namespace OSS.GenerateNotice.Models
 {
     public record NpmListJsonFile(string Name, string Version, ImmutableDictionary<string, NpmListJsonFileDependency>? Dependencies) : NpmListJsonFileDependency(Version, null, Dependencies);
 

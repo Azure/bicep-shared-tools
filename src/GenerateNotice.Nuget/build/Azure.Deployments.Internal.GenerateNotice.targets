@@ -1,22 +1,22 @@
-<Project TreatAsLocalProperty="_NoticeGeneratorAssetFileParameter;_NoticeGeneratorNpmListFileParameter">
+<Project TreatAsLocalProperty="_GenerateNoticeAssetFileParameter;_GenerateNoticeNpmListFileParameter">
   
   <Target Name="GenerateNotice" 
           AfterTargets="$(GenerateNoticeAfterTargets)" 
           BeforeTargets="$(GenerateNoticeBeforeTargets)" 
           DependsOnTargets="$(GenerateNoticeDependsOn)"
-          Inputs="@(NoticeGeneratorAssetFile);@(NoticeGeneratorNpmListJsonFile)"
-          Outputs="$(NoticeGeneratorOutputPath)">
-    <Error Condition="!Exists('$(NoticeGeneratorAssemblyPath)')" Text="The notice generator tool does not exist at '$(NoticeGeneratorAssemblyPath)'." />
-    <Error Condition="@(NoticeGeneratorAssetFile) == '' and @(NoticeGeneratorNpmListJsonFile) == ''" Text="You must specify at least one NoticeGeneratorAssetFile or NoticeGeneratorNpmListJsonFile item to generate a notice file." />
-    <Error Condition="$(NoticeGeneratorOutputPath) == ''" Text="You must set the NoticeGeneratorOutputPath property." />
+          Inputs="@(GenerateNoticeAssetFile);@(GenerateNoticeNpmListJsonFile)"
+          Outputs="$(GenerateNoticeOutputPath)">
+    <Error Condition="!Exists('$(GenerateNoticeAssemblyPath)')" Text="The notice generator tool does not exist at '$(GenerateNoticeAssemblyPath)'." />
+    <Error Condition="@(GenerateNoticeAssetFile) == '' and @(GenerateNoticeNpmListJsonFile) == ''" Text="You must specify at least one GenerateNoticeAssetFile or GenerateNoticeNpmListJsonFile item to generate a notice file." />
+    <Error Condition="$(GenerateNoticeOutputPath) == ''" Text="You must set the GenerateNoticeOutputPath property." />
 
     <PropertyGroup>
-      <_NoticeGeneratorAssetFileParameter Condition="@(NoticeGeneratorAssetFile) != ''">--asset-files @(NoticeGeneratorAssetFile,' ')</_NoticeGeneratorAssetFileParameter>
-      <_NoticeGeneratorNpmListFileParameter Condition="@(NoticeGeneratorNpmListJsonFile) != ''">--npm-list-json-files @(NoticeGeneratorNpmListJsonFile,' ')</_NoticeGeneratorNpmListFileParameter>
+      <_GenerateNoticeAssetFileParameter Condition="@(GenerateNoticeAssetFile) != ''">--asset-files @(GenerateNoticeAssetFile,' ')</_GenerateNoticeAssetFileParameter>
+      <_GenerateNoticeNpmListFileParameter Condition="@(GenerateNoticeNpmListJsonFile) != ''">--npm-list-json-files @(GenerateNoticeNpmListJsonFile,' ')</_GenerateNoticeNpmListFileParameter>
     </PropertyGroup>
 
     <Exec 
-      Command="dotnet $(NoticeGeneratorAssemblyPath) $(_NoticeGeneratorAssetFileParameter) $(_NoticeGeneratorNpmListFileParameter) --output-file $(NoticeGeneratorOutputPath)"
+      Command="dotnet $(GenerateNoticeAssemblyPath) $(_GenerateNoticeAssetFileParameter) $(_GenerateNoticeNpmListFileParameter) --output-file $(GenerateNoticeOutputPath)"
       WorkingDirectory="$(MSBuildProjectDirectory)" />
   </Target>
 </Project>

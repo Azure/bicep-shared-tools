@@ -1,5 +1,5 @@
 <Project>
   <PropertyGroup>
-    <NoticeGeneratorAssemblyPath>$(MSBuildThisFileDirectory)..\tools\NoticeGenerator.dll</NoticeGeneratorAssemblyPath>
+    <GenerateNoticeAssemblyPath>$(MSBuildThisFileDirectory)..\tools\GenerateNotice.dll</GenerateNoticeAssemblyPath>
   </PropertyGroup>
 </Project>
