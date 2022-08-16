@@ -1,9 +1,9 @@
 <!--
-  This project packages the NoticeGenerator.exe in a NuGet package but not as a .net tool.
+  This project packages the GenerateNotice.exe in a NuGet package but not as a .net tool.
   (Normal csproj files cannot import targets from dotnet tool packages.)
 
   Prerequisites:
-  - Run dotnet publish on the NoticeGenerator project.
+  - Run dotnet publish on the GenerateNotice project.
 -->
 <Project Sdk="Microsoft.Build.NoTargets">
   <PropertyGroup>
@@ -14,10 +14,10 @@
     <NugetExePath>$(PkgNuGet_CommandLine)\tools\NuGet.exe</NugetExePath>
     <NugetExePath Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' == 'true'">mono $(NugetExePath)</NugetExePath>
 
-    <NoticeGeneratorBinariesDirectory>$(MSBuildProjectDirectory)\..\NoticeGenerator\bin\$(Configuration)\$(TargetFramework)\publish</NoticeGeneratorBinariesDirectory>
-    <NoticeGeneratorAssemblyPath>$(NoticeGeneratorBinariesDirectory)\NoticeGenerator.dll</NoticeGeneratorAssemblyPath>
+    <GenerateNoticeBinariesDirectory>$(MSBuildProjectDirectory)\..\GenerateNotice\bin\$(Configuration)\$(TargetFramework)\publish</GenerateNoticeBinariesDirectory>
+    <GenerateNoticeAssemblyPath>$(GenerateNoticeBinariesDirectory)\GenerateNotice.dll</GenerateNoticeAssemblyPath>
 
-    <NoticeGeneratorCliAssetsFile>$(MSBuildProjectDirectory)\..\NoticeGenerator\obj\project.assets.json</NoticeGeneratorCliAssetsFile>
+    <GenerateNoticeCliAssetsFile>$(MSBuildProjectDirectory)\..\GenerateNotice\obj\project.assets.json</GenerateNoticeCliAssetsFile>
     <NoticeFileName>NOTICE.txt</NoticeFileName>
   </PropertyGroup>
 
@@ -32,12 +32,12 @@
     <NuSpec Include="Package.nuspec" />
   </ItemGroup>
 
-  <Target Name="GenerateNotice" BeforeTargets="RunTool" Inputs="$(NoticeGeneratorCliAssetsFile)" Outputs="$(IntermediateOutputPath)$(NoticeFileName)">
-    <Error Condition="!Exists('$(NoticeGeneratorAssemblyPath)')" Text="Could not find the notice generator tool at '$(NoticeGeneratorAssemblyPath)'." />
-    <Error Condition="!Exists('$(NoticeGeneratorCliAssetsFile)')" Text="Could not find the NoticeGenerator project assets file at '$(NoticeGeneratorCliAssetsFile)'." />
+  <Target Name="GenerateNotice" BeforeTargets="RunTool" Inputs="$(GenerateNoticeCliAssetsFile)" Outputs="$(IntermediateOutputPath)$(NoticeFileName)">
+    <Error Condition="!Exists('$(GenerateNoticeAssemblyPath)')" Text="Could not find the notice generator tool at '$(GenerateNoticeAssemblyPath)'." />
+    <Error Condition="!Exists('$(GenerateNoticeCliAssetsFile)')" Text="Could not find the GenerateNotice project assets file at '$(GenerateNoticeCliAssetsFile)'." />
 
     <Exec 
-      Command="dotnet $(NoticeGeneratorAssemblyPath) --asset-files $(NoticeGeneratorCliAssetsFile) --output-file $(IntermediateOutputPath)$(NoticeFileName)"
+      Command="dotnet $(GenerateNoticeAssemblyPath) --asset-files $(GenerateNoticeCliAssetsFile) --output-file $(IntermediateOutputPath)$(NoticeFileName)"
       WorkingDirectory="$(MSBuildProjectDirectory)" />
   </Target>
 

@@ -34,16 +34,16 @@ jobs:
         run: dotnet build --configuration Release
 
       - name: Publish GenerateNotice tool
-        run: dotnet publish --configuration Release ./src/NoticeGenerator/NoticeGenerator.csproj
+        run: dotnet publish --configuration Release ./src/GenerateNotice/GenerateNotice.csproj
       
       - name: Build package
-        run: dotnet build --configuration Release ./src/NoticeGenerator.Nuget/nuget.proj
+        run: dotnet build --configuration Release ./src/GenerateNotice.Nuget/nuget.proj
 
       - name: Upload GenerateNotice package
         uses: actions/upload-artifact@v3
         with:
           name: GenerateNotice-package
-          path: ./src/NoticeGenerator.Nuget/*.nupkg
+          path: ./src/GenerateNotice.Nuget/*.nupkg
           if-no-files-found: error
 
       - name: Test

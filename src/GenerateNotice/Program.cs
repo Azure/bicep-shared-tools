@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-using OSS.NoticeGenerator.Models;
+using OSS.GenerateNotice.Models;
 using System.Collections.Immutable;
 using System.CommandLine;
 using System.Net.Http.Headers;
@@ -9,7 +9,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Net;
 
-namespace OSS.NoticeGenerator
+namespace OSS.GenerateNotice
 {
     [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0030:Do not used banned APIs", Justification = "Ok to write to StdOut in this app.")]
     public class Program

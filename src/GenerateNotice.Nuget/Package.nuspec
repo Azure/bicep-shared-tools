@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>Azure.Bicep.Tools.GenerateNotice</id>
+    <id>Azure.Deployments.Internal.GenerateNotice</id>
     <version>$version$</version>
     <authors>Microsoft</authors>
     <license type="expression">MIT</license>
@@ -10,14 +10,14 @@
     <projectUrl>https://github.com/Azure/bicep-shared-tools</projectUrl>
     <description>Tool used to generate third-party notices files</description>
     <copyright>© Microsoft Corporation. All rights reserved.</copyright>
-    <tags>Azure Bicep Tools Notice</tags>
+    <tags>Azure Deployments Internal Generate Notice</tags>
   </metadata>
   <files>
     <file src="..\icons\bicep-logo-256.png" target="bicep-logo-256.png" />
     <!-- nuget convention requires .props and .targets file name to match package ID -->
-    <file src="build\Azure.Bicep.Tools.GenerateNotice.props" target="build\Azure.Bicep.Tools.GenerateNotice.props" />
-    <file src="build\Azure.Bicep.Tools.GenerateNotice.targets" target="build\Azure.Bicep.Tools.GenerateNotice.targets" />
-    <file src="..\NoticeGenerator\bin\$Configuration$\$TargetFramework$\publish\**" target="tools\" />
+    <file src="build\Azure.Deployments.Internal.GenerateNotice.props" target="build\Azure.Deployments.Internal.GenerateNotice.props" />
+    <file src="build\Azure.Deployments.Internal.GenerateNotice.targets" target="build\Azure.Deployments.Internal.GenerateNotice.targets" />
+    <file src="..\GenerateNotice\bin\$Configuration$\$TargetFramework$\publish\**" target="tools\" />
     <file src="obj\$Configuration$\$TargetFramework$\$NoticeFileName$" target="$NoticeFileName$" />
   </files>
 </package>

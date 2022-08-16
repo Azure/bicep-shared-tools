@@ -1,0 +1,22 @@
+<Project TreatAsLocalProperty="_GenerateNoticeAssetFileParameter;_GenerateNoticeNpmListFileParameter">
+  
+  <Target Name="GenerateNotice" 
+          AfterTargets="$(GenerateNoticeAfterTargets)" 
+          BeforeTargets="$(GenerateNoticeBeforeTargets)" 
+          DependsOnTargets="$(GenerateNoticeDependsOn)"
+          Inputs="@(GenerateNoticeAssetFile);@(GenerateNoticeNpmListJsonFile)"
+          Outputs="$(GenerateNoticeOutputPath)">
+    <Error Condition="!Exists('$(GenerateNoticeAssemblyPath)')" Text="The notice generator tool does not exist at '$(GenerateNoticeAssemblyPath)'." />
+    <Error Condition="@(GenerateNoticeAssetFile) == '' and @(GenerateNoticeNpmListJsonFile) == ''" Text="You must specify at least one GenerateNoticeAssetFile or GenerateNoticeNpmListJsonFile item to generate a notice file." />
+    <Error Condition="$(GenerateNoticeOutputPath) == ''" Text="You must set the GenerateNoticeOutputPath property." />
+
+    <PropertyGroup>
+      <_GenerateNoticeAssetFileParameter Condition="@(GenerateNoticeAssetFile) != ''">--asset-files @(GenerateNoticeAssetFile,' ')</_GenerateNoticeAssetFileParameter>
+      <_GenerateNoticeNpmListFileParameter Condition="@(GenerateNoticeNpmListJsonFile) != ''">--npm-list-json-files @(GenerateNoticeNpmListJsonFile,' ')</_GenerateNoticeNpmListFileParameter>
+    </PropertyGroup>
+
+    <Exec 
+      Command="dotnet $(GenerateNoticeAssemblyPath) $(_GenerateNoticeAssetFileParameter) $(_GenerateNoticeNpmListFileParameter) --output-file $(GenerateNoticeOutputPath)"
+      WorkingDirectory="$(MSBuildProjectDirectory)" />
+  </Target>
+</Project>

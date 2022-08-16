@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.3.32804.467
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoticeGenerator", "src\NoticeGenerator\NoticeGenerator.csproj", "{703EA1D3-0922-4F2B-9E1A-243FF6D63097}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GenerateNotice", "src\GenerateNotice\GenerateNotice.csproj", "{703EA1D3-0922-4F2B-9E1A-243FF6D63097}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

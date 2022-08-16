@@ -3,7 +3,7 @@
 
 using System.Collections.Immutable;
 
-namespace OSS.NoticeGenerator.Models
+namespace OSS.GenerateNotice.Models
 {
     public record NoticeRequest(ImmutableArray<string> Coordinates, NoticeRequestOptions Options, string? Renderer);
 
