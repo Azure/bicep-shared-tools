@@ -18,7 +18,7 @@
     <GenerateNoticeAssemblyPath>$(GenerateNoticeBinariesDirectory)\GenerateNotice.dll</GenerateNoticeAssemblyPath>
 
     <GenerateNoticeCliAssetsFile>$(MSBuildProjectDirectory)\..\GenerateNotice\obj\project.assets.json</GenerateNoticeCliAssetsFile>
-    <NoticeFileName>NOTICE.txt</NoticeFileName>
+    <NoticeFileName>ThirdPartyNotices.txt</NoticeFileName>
   </PropertyGroup>
 
   <ItemGroup>
