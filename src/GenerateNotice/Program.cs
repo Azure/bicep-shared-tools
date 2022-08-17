@@ -192,6 +192,9 @@ namespace OSS.GenerateNotice
 
         private static async Task WriteNoticeFile(NoticeResponseJsonContent content, string outputFilePath, string? preambleFilePath)
         {
+            var outputFileDirectory = Path.GetDirectoryName(outputFilePath) ?? throw new ApplicationException($"Unable to obtain directory path for file '{outputFilePath}'.");
+            Directory.CreateDirectory(outputFileDirectory);
+
             using var stream = File.OpenWrite(outputFilePath);
             using var writer = new StreamWriter(stream);
 
