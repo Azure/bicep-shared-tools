@@ -19,6 +19,7 @@
 
     <GenerateNoticeCliAssetsFile>$(MSBuildProjectDirectory)\..\GenerateNotice\obj\project.assets.json</GenerateNoticeCliAssetsFile>
     <NoticeFileName>ThirdPartyNotices.txt</NoticeFileName>
+    <PreambleFile>$(MSBuildProjectDirectory)\notice-preamble.txt</PreambleFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -32,12 +33,12 @@
     <NuSpec Include="Package.nuspec" />
   </ItemGroup>
 
-  <Target Name="GenerateNotice" BeforeTargets="RunTool" Inputs="$(GenerateNoticeCliAssetsFile)" Outputs="$(IntermediateOutputPath)$(NoticeFileName)">
+  <Target Name="GenerateNotice" BeforeTargets="RunTool" Inputs="$(GenerateNoticeCliAssetsFile);$(PreambleFile)" Outputs="$(IntermediateOutputPath)$(NoticeFileName)">
     <Error Condition="!Exists('$(GenerateNoticeAssemblyPath)')" Text="Could not find the notice generator tool at '$(GenerateNoticeAssemblyPath)'." />
     <Error Condition="!Exists('$(GenerateNoticeCliAssetsFile)')" Text="Could not find the GenerateNotice project assets file at '$(GenerateNoticeCliAssetsFile)'." />
 
     <Exec 
-      Command="dotnet $(GenerateNoticeAssemblyPath) --asset-files $(GenerateNoticeCliAssetsFile) --output-file $(IntermediateOutputPath)$(NoticeFileName)"
+      Command="dotnet $(GenerateNoticeAssemblyPath) --asset-files $(GenerateNoticeCliAssetsFile) --output-file $(IntermediateOutputPath)$(NoticeFileName) --preamble-file $(PreambleFile)"
       WorkingDirectory="$(MSBuildProjectDirectory)" />
   </Target>
 

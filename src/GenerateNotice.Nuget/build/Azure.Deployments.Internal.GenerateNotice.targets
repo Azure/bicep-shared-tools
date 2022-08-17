@@ -1,22 +1,24 @@
-<Project TreatAsLocalProperty="_GenerateNoticeAssetFileParameter;_GenerateNoticeNpmListFileParameter">
+<Project TreatAsLocalProperty="_GenerateNoticeAssetFileParameter;_GenerateNoticeNpmListFileParameter;_PreambleFileParameter">
   
   <Target Name="GenerateNotice" 
           AfterTargets="$(GenerateNoticeAfterTargets)" 
           BeforeTargets="$(GenerateNoticeBeforeTargets)" 
           DependsOnTargets="$(GenerateNoticeDependsOn)"
-          Inputs="@(GenerateNoticeAssetFile);@(GenerateNoticeNpmListJsonFile)"
+          Inputs="@(GenerateNoticeAssetFile);@(GenerateNoticeNpmListJsonFile);$(GenerateNoticePreambleFile)"
           Outputs="$(GenerateNoticeOutputPath)">
     <Error Condition="!Exists('$(GenerateNoticeAssemblyPath)')" Text="The notice generator tool does not exist at '$(GenerateNoticeAssemblyPath)'." />
-    <Error Condition="@(GenerateNoticeAssetFile) == '' and @(GenerateNoticeNpmListJsonFile) == ''" Text="You must specify at least one GenerateNoticeAssetFile or GenerateNoticeNpmListJsonFile item to generate a notice file." />
-    <Error Condition="$(GenerateNoticeOutputPath) == ''" Text="You must set the GenerateNoticeOutputPath property." />
+    <Error Condition="'@(GenerateNoticeAssetFile)' == '' and '@(GenerateNoticeNpmListJsonFile)' == ''" Text="You must specify at least one GenerateNoticeAssetFile or GenerateNoticeNpmListJsonFile item to generate a notice file." />
+    <Error Condition="'$(GenerateNoticeOutputPath)' == ''" Text="You must set the GenerateNoticeOutputPath property." />
+    <Error Condition="'$(GenerateNoticePreambleFile)' != '' and !Exists('$(GenerateNoticePreambleFile)')" Text="The specified optional preable file '$(GenerateNoticePreambleFile)' does not exist." />
 
     <PropertyGroup>
       <_GenerateNoticeAssetFileParameter Condition="@(GenerateNoticeAssetFile) != ''">--asset-files @(GenerateNoticeAssetFile,' ')</_GenerateNoticeAssetFileParameter>
       <_GenerateNoticeNpmListFileParameter Condition="@(GenerateNoticeNpmListJsonFile) != ''">--npm-list-json-files @(GenerateNoticeNpmListJsonFile,' ')</_GenerateNoticeNpmListFileParameter>
+      <_PreambleFileParameter Condition="'$(GenerateNoticePreambleFile)' != ''">--preamble-file $(GenerateNoticePreambleFile)</_PreambleFileParameter>
     </PropertyGroup>
 
     <Exec 
-      Command="dotnet $(GenerateNoticeAssemblyPath) $(_GenerateNoticeAssetFileParameter) $(_GenerateNoticeNpmListFileParameter) --output-file $(GenerateNoticeOutputPath)"
+      Command="dotnet $(GenerateNoticeAssemblyPath) $(_GenerateNoticeAssetFileParameter) $(_GenerateNoticeNpmListFileParameter) --output-file $(GenerateNoticeOutputPath) $(_PreambleFileParameter)"
       WorkingDirectory="$(MSBuildProjectDirectory)" />
   </Target>
 </Project>
