@@ -11,7 +11,6 @@ using System.Net;
 
 namespace OSS.GenerateNotice
 {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("ApiDesign", "RS0030:Do not used banned APIs", Justification = "Ok to write to StdOut in this app.")]
     public class Program
     {
         private static readonly JsonSerializerOptions SerializerOptions = new()
@@ -43,19 +42,26 @@ namespace OSS.GenerateNotice
                 IsRequired = true
             };
 
+            var preambleFile = new Option<string>("--preamble-file", "Path to a text file whose contents will be included at the top of the generated NOTICE file.")
+            {
+                IsRequired = false
+            };
+
             rootCommand.AddOption(assetFilesOption);
             rootCommand.AddOption(npmListJsonFilesOption);
             rootCommand.AddOption(outputOption);
+            rootCommand.AddOption(preambleFile);
 
             try
             {
-                rootCommand.SetHandler<List<string>, List<string>, string>(async (assetFiles, npmListJsonFiles, outputFile) =>
+                rootCommand.SetHandler<List<string>, List<string>, string, string?>(async (assetFiles, npmListJsonFiles, outputFile, preambleFile) =>
                 {
                     await MainInternal(
                         assetFiles.Select(ResolvePath).ToImmutableArray(),
                         npmListJsonFiles.Select(ResolvePath).ToImmutableArray(),
-                        ResolvePath(outputFile));
-                }, assetFilesOption, npmListJsonFilesOption, outputOption);
+                        ResolvePath(outputFile),
+                        preambleFile);
+                }, assetFilesOption, npmListJsonFilesOption, outputOption, preambleFile);
 
                 return await rootCommand.InvokeAsync(args);
             }
@@ -66,7 +72,7 @@ namespace OSS.GenerateNotice
             }
         }
 
-        private static async Task MainInternal(ImmutableArray<string> assetFiles, ImmutableArray<string> npmListJsonFiles, string outputFile)
+        private static async Task MainInternal(ImmutableArray<string> assetFiles, ImmutableArray<string> npmListJsonFiles, string outputFile, string? preambleFile)
         {
             var nugetDependencies = assetFiles
                 .Select(assetFilePath => DeserializeFile<ProjectAssetsFile>(assetFilePath))
@@ -100,7 +106,7 @@ namespace OSS.GenerateNotice
             var requestBody = CreateNoticeRequest(nugetDependencies, npmDependencies);
             var responseBody = await GenerateNotice(client, requestBody);
 
-            await WriteNoticeFile(responseBody.Content, outputFile);
+            await WriteNoticeFile(responseBody.Content, outputFile, preambleFile);
             Console.WriteLine($"NOTICE file saved to '{outputFile}'.");
         }
 
@@ -184,14 +190,18 @@ namespace OSS.GenerateNotice
             return responseBody;
         }
 
-        private static async Task WriteNoticeFile(NoticeResponseJsonContent content, string fileName)
+        private static async Task WriteNoticeFile(NoticeResponseJsonContent content, string outputFilePath, string? preambleFilePath)
         {
-            using var stream = File.OpenWrite(fileName);
+            using var stream = File.OpenWrite(outputFilePath);
             using var writer = new StreamWriter(stream);
 
-            // TODO: Add notice prefix content
-
             const string Separator = $"---------------------------------------------------------";
+
+            if(preambleFilePath is not null)
+            {
+                var preambleContents = await File.ReadAllTextAsync(preambleFilePath);
+                await writer.WriteLineAsync(preambleContents);
+            }
 
             foreach (var package in content.Packages)
             {
