@@ -165,16 +165,11 @@ namespace OSS.GenerateNotice
 
         private static async Task<NoticeResponse<NoticeResponseJsonContent>> GenerateNotice(HttpClient client, NoticeRequest requestBody)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, "https://api.clearlydefined.io/notices")
-            {
-                Content = JsonContent.Create(requestBody)
-            };
-
             var response = await HttpPolicyExtensions
                 .HandleTransientHttpError()
                 .OrResult(response => response.StatusCode == HttpStatusCode.TooManyRequests)
                 .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(retryAttempt * 10), (result, delay) => Console.WriteLine($"Retrying after {delay}..."))
-                .ExecuteAsync(() => InvokeNoticeApi(client, request));
+                .ExecuteAsync(() => InvokeNoticeApi(client, requestBody));
 
             if (response.StatusCode != HttpStatusCode.OK)
             {
@@ -191,9 +186,15 @@ namespace OSS.GenerateNotice
             return responseBody;
         }
 
-        private static async Task<HttpResponseMessage> InvokeNoticeApi(HttpClient client, HttpRequestMessage request)
+        private static async Task<HttpResponseMessage> InvokeNoticeApi(HttpClient client, NoticeRequest requestBody)
         {
+            // request messages cannot be reused during retries
+            var request = new HttpRequestMessage(HttpMethod.Post, "https://api.clearlydefined.io/notices")
+            {
+                Content = JsonContent.Create(requestBody)
+            };
             Console.WriteLine($"{request.Method.ToString().ToUpperInvariant()} {request.RequestUri}");
+            
             var response = await client.SendAsync(request) ?? throw new ApplicationException("Null response was received.");
             Console.WriteLine($"  {response.StatusCode}");
             foreach (var header in response.Headers)
