@@ -4,10 +4,13 @@
 using OSS.GenerateNotice.Models;
 using System.Collections.Immutable;
 using System.CommandLine;
+using System.Linq;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Net;
+using Polly;
+using Polly.Extensions.Http;
 
 namespace OSS.GenerateNotice
 {
@@ -126,7 +129,7 @@ namespace OSS.GenerateNotice
             return JsonSerializer.Deserialize<T>(stream, SerializerOptions) ?? throw new Exception($"Unable to deserialize file '{assetFile}'.");
         }
 
-        private static IEnumerable<string>SelectAllDependencies(NpmListJsonFile file)
+        private static IEnumerable<string> SelectAllDependencies(NpmListJsonFile file)
         {
             static string FormatPath(string name, string version) => $"{name}/{version}";
 
@@ -136,7 +139,7 @@ namespace OSS.GenerateNotice
                 {
                     yield return FormatPath(kvp.Key, kvp.Value.Version);
 
-                    foreach(var subDependencyPath in SelectAllDependencyPaths(kvp.Value.Dependencies))
+                    foreach (var subDependencyPath in SelectAllDependencyPaths(kvp.Value.Dependencies))
                     {
                         yield return subDependencyPath;
                     }
@@ -147,7 +150,7 @@ namespace OSS.GenerateNotice
             foreach (var path in SelectAllDependencyPaths(file.Dependencies))
             {
                 yield return path;
-            }            
+            }
         }
 
         private static NoticeRequest CreateNoticeRequest(IEnumerable<string> nugetDependencies, IEnumerable<string> npmDependencies)
@@ -162,18 +165,11 @@ namespace OSS.GenerateNotice
 
         private static async Task<NoticeResponse<NoticeResponseJsonContent>> GenerateNotice(HttpClient client, NoticeRequest requestBody)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, "https://api.clearlydefined.io/notices")
-            {
-                Content = JsonContent.Create(requestBody)
-            };
-
-            Console.WriteLine($"{request.Method.ToString().ToUpperInvariant()} {request.RequestUri}");
-            var response = await client.SendAsync(request) ?? throw new ApplicationException("Null response was received.");
-            Console.WriteLine($"  {response.StatusCode}");
-            foreach (var header in response.Headers)
-            {
-                Console.WriteLine($"  {header.Key}: {string.Join("; ", header.Value)}");
-            }
+            var response = await HttpPolicyExtensions
+                .HandleTransientHttpError()
+                .OrResult(response => response.StatusCode == HttpStatusCode.TooManyRequests)
+                .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(retryAttempt * 10), (result, delay) => Console.WriteLine($"Retrying after {delay}..."))
+                .ExecuteAsync(() => InvokeNoticeApi(client, requestBody));
 
             if (response.StatusCode != HttpStatusCode.OK)
             {
@@ -190,6 +186,25 @@ namespace OSS.GenerateNotice
             return responseBody;
         }
 
+        private static async Task<HttpResponseMessage> InvokeNoticeApi(HttpClient client, NoticeRequest requestBody)
+        {
+            // request messages cannot be reused during retries
+            var request = new HttpRequestMessage(HttpMethod.Post, "https://api.clearlydefined.io/notices")
+            {
+                Content = JsonContent.Create(requestBody)
+            };
+            Console.WriteLine($"{request.Method.ToString().ToUpperInvariant()} {request.RequestUri}");
+            
+            var response = await client.SendAsync(request) ?? throw new ApplicationException("Null response was received.");
+            Console.WriteLine($"  {response.StatusCode}");
+            foreach (var header in response.Headers)
+            {
+                Console.WriteLine($"  {header.Key}: {string.Join("; ", header.Value)}");
+            }
+
+            return response;
+        }
+
         private static async Task WriteNoticeFile(NoticeResponseJsonContent content, string outputFilePath, string? preambleFilePath)
         {
             var outputFileDirectory = Path.GetDirectoryName(outputFilePath) ?? throw new ApplicationException($"Unable to obtain directory path for file '{outputFilePath}'.");
@@ -200,7 +215,7 @@ namespace OSS.GenerateNotice
 
             const string Separator = $"---------------------------------------------------------";
 
-            if(preambleFilePath is not null)
+            if (preambleFilePath is not null)
             {
                 var preambleContents = await File.ReadAllTextAsync(preambleFilePath);
                 await writer.WriteLineAsync(preambleContents);
@@ -216,7 +231,10 @@ namespace OSS.GenerateNotice
 
                 await writer.WriteLineAsync();
 
-                foreach (var copyright in package.Copyrights ?? ImmutableArray<string>.Empty)
+                // the ClearlyDefined notice API has a bug where it attributes the copyright of the NuGet signing tool to every package
+                // as per instructions from CELA, we are stripping it out until the bug is fixed
+                var copyrights = package.Copyrights?.Where(copyright => !string.Equals(copyright, "(c) 2008 VeriSign, Inc.", StringComparison.OrdinalIgnoreCase));
+                foreach (var copyright in copyrights ?? ImmutableArray<string>.Empty)
                 {
                     await writer.WriteLineAsync(copyright);
                 }
