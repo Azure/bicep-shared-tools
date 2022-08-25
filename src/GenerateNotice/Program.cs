@@ -53,17 +53,22 @@ namespace OSS.GenerateNotice
                 IsRequired = false
             };
 
-            var batchSizeOption = new Option<int?>("--batch-size", $"Numbers of libraries to submit on a single API call. Batches will be submitted sequentially. The default is {DefaultBatchSize}.")
+            var batchSizeOption = new Option<int?>("--batch-size", $"Number of libraries to submit on a single API call. Batches will be submitted sequentially. The default is {DefaultBatchSize}.")
             {
                 IsRequired = false
             };
 
-            var retryCount = new Option<int?>("--retry-count", $"Number of retries for each API call. The default is {DefaultRetryCount}.");
+            var retryCountOption = new Option<int?>("--retry-count", $"Number of retries for each API call. The default is {DefaultRetryCount}.")
+            {
+                IsRequired = false
+            };
 
             rootCommand.AddOption(assetFilesOption);
             rootCommand.AddOption(npmListJsonFilesOption);
             rootCommand.AddOption(outputOption);
             rootCommand.AddOption(preambleFileOption);
+            rootCommand.AddOption(batchSizeOption);
+            rootCommand.AddOption(retryCountOption);
 
             try
             {
@@ -80,7 +85,7 @@ namespace OSS.GenerateNotice
                     );
 
                     await MainInternal(arguments);
-                }, assetFilesOption, npmListJsonFilesOption, outputOption, preambleFileOption, batchSizeOption, retryCount);
+                }, assetFilesOption, npmListJsonFilesOption, outputOption, preambleFileOption, batchSizeOption, retryCountOption);
 
                 return await rootCommand.InvokeAsync(args);
             }
