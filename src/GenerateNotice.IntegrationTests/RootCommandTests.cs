@@ -66,11 +66,11 @@ namespace GenerateNotice.IntegrationTests
                 "NPM dependency count = 0",
                 "OK",
                 "NOTICE file saved to '",
-                "Starting batch 0 (0..100)",
+                "Starting batch 0 (0..99)",
                 "Completed batch 0",
-                "Starting batch 1 (100..200)",
+                "Starting batch 1 (100..199)",
                 "Completed batch 1",
-                "Starting batch 2 (200..212)",
+                "Starting batch 2 (200..211)",
                 "Completed batch 2");
 
             File.Exists(outputFilePath).Should().BeTrue();
@@ -113,13 +113,13 @@ namespace GenerateNotice.IntegrationTests
                 "NPM dependency count = 393",
                 "OK",
                 "NOTICE file saved to '",
-                "Starting batch 0 (0..100)",
+                "Starting batch 0 (0..99)",
                 "Completed batch 0",
-                "Starting batch 1 (100..200)",
+                "Starting batch 1 (100..199)",
                 "Completed batch 1",
-                "Starting batch 2 (200..300)",
+                "Starting batch 2 (200..299)",
                 "Completed batch 2",
-                "Starting batch 3 (300..393)",
+                "Starting batch 3 (300..392)",
                 "Completed batch 3");
 
             File.Exists(outputFilePath).Should().BeTrue();

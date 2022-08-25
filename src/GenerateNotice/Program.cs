@@ -118,6 +118,8 @@ namespace OSS.GenerateNotice
                 .ToImmutableArray();
             Console.WriteLine($"NPM dependency count = {npmDependencies.Length}");
 
+            Console.WriteLine($"Total count = {nugetDependencies.Length + npmDependencies.Length}");
+
             var client = new HttpClient();
             client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -132,7 +134,7 @@ namespace OSS.GenerateNotice
             {
                 var request = requests[i];
 
-                Console.WriteLine($"Starting batch {i} ({processedCoordinates}..{processedCoordinates + request.Coordinates.Length})");
+                Console.WriteLine($"Starting batch {i} ({processedCoordinates}..{processedCoordinates + request.Coordinates.Length - 1})");
 
                 responses.Add(await InvokeNoticeApi(client, request, arguments.RetryCount));
 
