@@ -53,12 +53,12 @@ namespace OSS.GenerateNotice
                 IsRequired = false
             };
 
-            var batchSizeOption = new Option<int>("--batch-size", $"Numbers of libraries to submit on a single API call. Batches will be submitted sequentially. The default is {DefaultBatchSize}.")
+            var batchSizeOption = new Option<int?>("--batch-size", $"Numbers of libraries to submit on a single API call. Batches will be submitted sequentially. The default is {DefaultBatchSize}.")
             {
                 IsRequired = false
             };
 
-            var retryCount = new Option<int>("--retry-count", $"Number of retries for each API call. The default is {DefaultRetryCount}.");
+            var retryCount = new Option<int?>("--retry-count", $"Number of retries for each API call. The default is {DefaultRetryCount}.");
 
             rootCommand.AddOption(assetFilesOption);
             rootCommand.AddOption(npmListJsonFilesOption);
@@ -67,7 +67,7 @@ namespace OSS.GenerateNotice
 
             try
             {
-                rootCommand.SetHandler<List<string>, List<string>, string, string?, int?, int?>(async (assetFiles, npmListJsonFiles, outputFile, preambleFile, batchSize, retryCount) =>
+                rootCommand.SetHandler(async (assetFiles, npmListJsonFiles, outputFile, preambleFile, batchSize, retryCount) =>
                 {
                     var arguments = new ToolArguments
                     (
@@ -109,31 +109,43 @@ namespace OSS.GenerateNotice
                 .Distinct()
                 .ToImmutableArray();
 
-            Console.WriteLine($"NuGet dependencies ({nugetDependencies.Length}):");
-            foreach (var nugetDependency in nugetDependencies)
-            {
-                Console.WriteLine($"  {nugetDependency}");
-            }
-
+            Console.WriteLine($"NuGet dependency count = {nugetDependencies.Length}");
+            
             var npmDependencies = arguments.NpmListJsonFiles
                 .Select(npmListJsonFile => DeserializeFile<NpmListJsonFile>(npmListJsonFile))
                 .SelectMany(file => SelectAllDependencies(file))
                 .Distinct()
                 .ToImmutableArray();
-            Console.WriteLine($"NPM dependencies ({npmDependencies.Length}):");
-            foreach (var npmDependency in npmDependencies)
-            {
-                Console.WriteLine($"  {npmDependency}");
-            }
+            Console.WriteLine($"NPM dependency count = {npmDependencies.Length}");
 
             var client = new HttpClient();
             client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-            var requestBody = CreateNoticeRequest(nugetDependencies, npmDependencies);
-            var responseBody = await GenerateNotice(client, requestBody, arguments.BatchSize, arguments.RetryCount);
+            var requests = CreateNoticeRequests(nugetDependencies, npmDependencies, arguments.BatchSize);
 
-            await WriteNoticeFile(responseBody.Content, arguments.OutputFile, arguments.PreambleFile);
+            // the ClearlyDefined service API has higher chances of failure with larger batch sizes
+            // Component Governance uses a batch size of 100
+            var processedCoordinates = 0;
+            var responses = new List<NoticeResponse<NoticeResponseJsonContent>>();
+            for(int i = 0; i < requests.Length; i++)
+            {
+                var request = requests[i];
+
+                Console.WriteLine($"Starting batch {i} ({processedCoordinates}..{processedCoordinates + request.Coordinates.Length})");
+
+                responses.Add(await InvokeNoticeApi(client, request, arguments.RetryCount));
+
+                Console.WriteLine($"Completed batch {i}");
+                processedCoordinates += request.Coordinates.Length;
+            }
+
+            // aggregate all the responses together
+            var packages = responses
+                .SelectMany(response => response.Content.Packages)
+                .ToImmutableArray();
+
+            await WriteNoticeFile(packages, arguments.OutputFile, arguments.PreambleFile);
             Console.WriteLine($"NOTICE file saved to '{arguments.OutputFile}'.");
         }
 
@@ -179,17 +191,16 @@ namespace OSS.GenerateNotice
             }
         }
 
-        private static NoticeRequest CreateNoticeRequest(IEnumerable<string> nugetDependencies, IEnumerable<string> npmDependencies)
-        {
-            var coordinates = nugetDependencies
+        private static ImmutableArray<NoticeRequest> CreateNoticeRequests(IEnumerable<string> nugetDependencies, IEnumerable<string> npmDependencies, int batchSize) =>
+            nugetDependencies
                 .Select(nugetDependency => $"nuget/nuget/-/{nugetDependency}")
                 .Concat(npmDependencies.Select(npmDependency => $"npm/npmjs/-/{npmDependency}"))
+                .OrderBy(s => s)
+                .Chunk(batchSize)
+                .Select(batch => new NoticeRequest(batch.ToImmutableArray(), new NoticeRequestOptions(), "json"))
                 .ToImmutableArray();
 
-            return new NoticeRequest(coordinates, new NoticeRequestOptions(), "json");
-        }
-
-        private static async Task<NoticeResponse<NoticeResponseJsonContent>> GenerateNotice(HttpClient client, NoticeRequest requestBody, int batchSize, int retryCount)
+        private static async Task<NoticeResponse<NoticeResponseJsonContent>> InvokeNoticeApi(HttpClient client, NoticeRequest requestBody, int retryCount)
         {
             var response = await HttpPolicyExtensions
                 .HandleTransientHttpError()
@@ -231,7 +242,7 @@ namespace OSS.GenerateNotice
             return response;
         }
 
-        private static async Task WriteNoticeFile(NoticeResponseJsonContent content, string outputFilePath, string? preambleFilePath)
+        private static async Task WriteNoticeFile(ImmutableArray<NoticeResponseJsonPackage> packages, string outputFilePath, string? preambleFilePath)
         {
             var outputFileDirectory = Path.GetDirectoryName(outputFilePath) ?? throw new ApplicationException($"Unable to obtain directory path for file '{outputFilePath}'.");
             Directory.CreateDirectory(outputFileDirectory);
@@ -247,7 +258,7 @@ namespace OSS.GenerateNotice
                 await writer.WriteLineAsync(preambleContents);
             }
 
-            foreach (var package in content.Packages)
+            foreach (var package in packages)
             {
                 await writer.WriteLineAsync(Separator);
                 await writer.WriteLineAsync();

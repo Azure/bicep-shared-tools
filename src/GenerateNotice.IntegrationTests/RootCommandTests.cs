@@ -62,10 +62,16 @@ namespace GenerateNotice.IntegrationTests
             result.ExitCode.Should().Be(0);
             result.StdErr.Should().BeEmpty();
             result.StdOutAsString.Should().ContainAll(
-                "NuGet dependencies (212):",
-                "NPM dependencies (0):",
+                "NuGet dependency count = 212",
+                "NPM dependency count = 0",
                 "OK",
-                "NOTICE file saved to '");
+                "NOTICE file saved to '",
+                "Starting batch 0 (0..100)",
+                "Completed batch 0",
+                "Starting batch 1 (100..200)",
+                "Completed batch 1",
+                "Starting batch 2 (200..212)",
+                "Completed batch 2");
 
             File.Exists(outputFilePath).Should().BeTrue();
             var notice = File.ReadAllText(outputFilePath);
@@ -103,10 +109,18 @@ namespace GenerateNotice.IntegrationTests
             result.ExitCode.Should().Be(0);
             result.StdErr.Should().BeEmpty();
             result.StdOutAsString.Should().ContainAll(
-                "NuGet dependencies (0):",
-                "NPM dependencies (393):",
+                "NuGet dependency count = 0",
+                "NPM dependency count = 393",
                 "OK",
-                "NOTICE file saved to '");
+                "NOTICE file saved to '",
+                "Starting batch 0 (0..100)",
+                "Completed batch 0",
+                "Starting batch 1 (100..200)",
+                "Completed batch 1",
+                "Starting batch 2 (200..300)",
+                "Completed batch 2",
+                "Starting batch 3 (300..393)",
+                "Completed batch 3");
 
             File.Exists(outputFilePath).Should().BeTrue();
             var notice = File.ReadAllText(outputFilePath);
