@@ -24,6 +24,9 @@ namespace OSS.GenerateNotice
 
         public static async Task<int> Main(string[] args)
         {
+            const int DefaultBatchSize = 100;
+            const int DefaultRetryCount = 3;
+
             var rootCommand = new RootCommand("Third-party notice generator");
 
             var assetFilesOption = new Option<List<string>>("--asset-files", "One or more paths to project.assets.json file(s).")
@@ -45,26 +48,39 @@ namespace OSS.GenerateNotice
                 IsRequired = true
             };
 
-            var preambleFile = new Option<string>("--preamble-file", "Path to a text file whose contents will be included at the top of the generated NOTICE file.")
+            var preambleFileOption = new Option<string>("--preamble-file", "Path to a text file whose contents will be included at the top of the generated NOTICE file.")
             {
                 IsRequired = false
             };
 
+            var batchSizeOption = new Option<int>("--batch-size", $"Numbers of libraries to submit on a single API call. Batches will be submitted sequentially. The default is {DefaultBatchSize}.")
+            {
+                IsRequired = false
+            };
+
+            var retryCount = new Option<int>("--retry-count", $"Number of retries for each API call. The default is {DefaultRetryCount}.");
+
             rootCommand.AddOption(assetFilesOption);
             rootCommand.AddOption(npmListJsonFilesOption);
             rootCommand.AddOption(outputOption);
-            rootCommand.AddOption(preambleFile);
+            rootCommand.AddOption(preambleFileOption);
 
             try
             {
-                rootCommand.SetHandler<List<string>, List<string>, string, string?>(async (assetFiles, npmListJsonFiles, outputFile, preambleFile) =>
+                rootCommand.SetHandler<List<string>, List<string>, string, string?, int?, int?>(async (assetFiles, npmListJsonFiles, outputFile, preambleFile, batchSize, retryCount) =>
                 {
-                    await MainInternal(
-                        assetFiles.Select(ResolvePath).ToImmutableArray(),
-                        npmListJsonFiles.Select(ResolvePath).ToImmutableArray(),
-                        ResolvePath(outputFile),
-                        preambleFile);
-                }, assetFilesOption, npmListJsonFilesOption, outputOption, preambleFile);
+                    var arguments = new ToolArguments
+                    (
+                        AssetFiles: assetFiles.Select(ResolvePath).ToImmutableArray(),
+                        NpmListJsonFiles: npmListJsonFiles.Select(ResolvePath).ToImmutableArray(),
+                        OutputFile: ResolvePath(outputFile),
+                        PreambleFile: ResolveOptionalPath(preambleFile),
+                        BatchSize: batchSize ?? DefaultBatchSize,
+                        RetryCount: retryCount ?? DefaultRetryCount
+                    );
+
+                    await MainInternal(arguments);
+                }, assetFilesOption, npmListJsonFilesOption, outputOption, preambleFileOption, batchSizeOption, retryCount);
 
                 return await rootCommand.InvokeAsync(args);
             }
@@ -75,9 +91,17 @@ namespace OSS.GenerateNotice
             }
         }
 
-        private static async Task MainInternal(ImmutableArray<string> assetFiles, ImmutableArray<string> npmListJsonFiles, string outputFile, string? preambleFile)
+        public record ToolArguments(
+            ImmutableArray<string> AssetFiles,
+            ImmutableArray<string> NpmListJsonFiles,
+            string OutputFile,
+            string? PreambleFile,
+            int BatchSize,
+            int RetryCount);
+
+        private static async Task MainInternal(ToolArguments arguments)
         {
-            var nugetDependencies = assetFiles
+            var nugetDependencies = arguments.AssetFiles
                 .Select(assetFilePath => DeserializeFile<ProjectAssetsFile>(assetFilePath))
                 .SelectMany(assetFile => assetFile.Libraries.Values)
                 .Where(library => string.Equals(library.Type, "package", StringComparison.OrdinalIgnoreCase))
@@ -91,7 +115,7 @@ namespace OSS.GenerateNotice
                 Console.WriteLine($"  {nugetDependency}");
             }
 
-            var npmDependencies = npmListJsonFiles
+            var npmDependencies = arguments.NpmListJsonFiles
                 .Select(npmListJsonFile => DeserializeFile<NpmListJsonFile>(npmListJsonFile))
                 .SelectMany(file => SelectAllDependencies(file))
                 .Distinct()
@@ -107,11 +131,13 @@ namespace OSS.GenerateNotice
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
             var requestBody = CreateNoticeRequest(nugetDependencies, npmDependencies);
-            var responseBody = await GenerateNotice(client, requestBody);
+            var responseBody = await GenerateNotice(client, requestBody, arguments.BatchSize, arguments.RetryCount);
 
-            await WriteNoticeFile(responseBody.Content, outputFile, preambleFile);
-            Console.WriteLine($"NOTICE file saved to '{outputFile}'.");
+            await WriteNoticeFile(responseBody.Content, arguments.OutputFile, arguments.PreambleFile);
+            Console.WriteLine($"NOTICE file saved to '{arguments.OutputFile}'.");
         }
+
+        private static string? ResolveOptionalPath(string? path) => path is null ? null : ResolvePath(path);
 
         private static string ResolvePath(string path)
         {
@@ -163,12 +189,12 @@ namespace OSS.GenerateNotice
             return new NoticeRequest(coordinates, new NoticeRequestOptions(), "json");
         }
 
-        private static async Task<NoticeResponse<NoticeResponseJsonContent>> GenerateNotice(HttpClient client, NoticeRequest requestBody)
+        private static async Task<NoticeResponse<NoticeResponseJsonContent>> GenerateNotice(HttpClient client, NoticeRequest requestBody, int batchSize, int retryCount)
         {
             var response = await HttpPolicyExtensions
                 .HandleTransientHttpError()
                 .OrResult(response => response.StatusCode == HttpStatusCode.TooManyRequests)
-                .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(retryAttempt * 10), (result, delay) => Console.WriteLine($"Retrying after {delay}..."))
+                .WaitAndRetryAsync(retryCount, retryAttempt => TimeSpan.FromSeconds(retryAttempt * 10), (result, delay) => Console.WriteLine($"Retrying after {delay}..."))
                 .ExecuteAsync(() => InvokeNoticeApi(client, requestBody));
 
             if (response.StatusCode != HttpStatusCode.OK)
