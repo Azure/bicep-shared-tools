@@ -1,5 +1,10 @@
-<Project TreatAsLocalProperty="_GenerateNoticeAssetFileParameter;_GenerateNoticeNpmListFileParameter;_PreambleFileParameter">
+<Project TreatAsLocalProperty="_GenerateNoticeAssetFileParameter;_GenerateNoticeNpmListFileParameter;_PreambleFileParameter;_RetryCountParameter;_BatchSizeParameter">
   
+  <PropertyGroup>
+    <GenerateNoticeRetryCount Condition="'$(GenerateNoticeRetryCount)' == ''">3</GenerateNoticeRetryCount>
+    <GenerateNoticeBatchSize Condition="'$(GenerateNoticeBatchSize)' == ''">100</GenerateNoticeBatchSize>
+  </PropertyGroup>
+
   <Target Name="GenerateNotice" 
           AfterTargets="$(GenerateNoticeAfterTargets)" 
           BeforeTargets="$(GenerateNoticeBeforeTargets)" 
@@ -15,10 +20,12 @@
       <_GenerateNoticeAssetFileParameter Condition="@(GenerateNoticeAssetFile) != ''">--asset-files @(GenerateNoticeAssetFile,' ')</_GenerateNoticeAssetFileParameter>
       <_GenerateNoticeNpmListFileParameter Condition="@(GenerateNoticeNpmListJsonFile) != ''">--npm-list-json-files @(GenerateNoticeNpmListJsonFile,' ')</_GenerateNoticeNpmListFileParameter>
       <_PreambleFileParameter Condition="'$(GenerateNoticePreambleFile)' != ''">--preamble-file $(GenerateNoticePreambleFile)</_PreambleFileParameter>
+      <_RetryCountParameter>--retry-count $(GenerateNoticeRetryCount)</_RetryCountParameter>
+      <_BatchSizeParameter>--batch-size $(GenerateNoticeBatchSize)</_BatchSizeParameter>
     </PropertyGroup>
 
     <Exec 
-      Command="dotnet $(GenerateNoticeAssemblyPath) $(_GenerateNoticeAssetFileParameter) $(_GenerateNoticeNpmListFileParameter) --output-file $(GenerateNoticeOutputPath) $(_PreambleFileParameter)"
+      Command="dotnet $(GenerateNoticeAssemblyPath) $(_GenerateNoticeAssetFileParameter) $(_GenerateNoticeNpmListFileParameter) --output-file $(GenerateNoticeOutputPath) $(_PreambleFileParameter) $(_RetryCountParameter) $(_BatchSizeParameter)"
       WorkingDirectory="$(MSBuildProjectDirectory)" />
   </Target>
 </Project>
