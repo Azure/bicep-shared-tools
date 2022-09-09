@@ -3,18 +3,40 @@
   <PropertyGroup>
     <GenerateNoticeRetryCount Condition="'$(GenerateNoticeRetryCount)' == ''">3</GenerateNoticeRetryCount>
     <GenerateNoticeBatchSize Condition="'$(GenerateNoticeBatchSize)' == ''">100</GenerateNoticeBatchSize>
+    
+    <GenerateNoticeUseLocalFile Condition="'$(GenerateNoticeUseLocalFile)' == ''">false</GenerateNoticeUseLocalFile>
+    <GenerateNoticeUpdateLocalFile Condition="'$(GenerateNoticeUpdateLocalFile)'==''">false</GenerateNoticeUpdateLocalFile>
   </PropertyGroup>
 
-  <Target Name="GenerateNotice" 
+  <!-- this is the entry point for callers -->
+  <Target Name="GenerateNotice"
           AfterTargets="$(GenerateNoticeAfterTargets)" 
           BeforeTargets="$(GenerateNoticeBeforeTargets)" 
-          DependsOnTargets="$(GenerateNoticeDependsOn)"
-          Inputs="@(GenerateNoticeAssetFile);@(GenerateNoticeNpmListJsonFile);$(GenerateNoticePreambleFile)"
-          Outputs="$(GenerateNoticeOutputPath)">
+          DependsOnTargets="$(GenerateNoticeDependsOn)">
+
     <Error Condition="!Exists('$(GenerateNoticeAssemblyPath)')" Text="The notice generator tool does not exist at '$(GenerateNoticeAssemblyPath)'." />
     <Error Condition="'@(GenerateNoticeAssetFile)' == '' and '@(GenerateNoticeNpmListJsonFile)' == ''" Text="You must specify at least one GenerateNoticeAssetFile or GenerateNoticeNpmListJsonFile item to generate a notice file." />
     <Error Condition="'$(GenerateNoticeOutputPath)' == ''" Text="You must set the GenerateNoticeOutputPath property." />
     <Error Condition="'$(GenerateNoticePreambleFile)' != '' and !Exists('$(GenerateNoticePreambleFile)')" Text="The specified optional preable file '$(GenerateNoticePreambleFile)' does not exist." />
+
+    <Error Condition="'$(GenerateNoticeUseLocalFile)'=='true' and !Exists('$(GenerateNoticeLocalFilePath)')" Text="Local notice file cannot be used because local file '$(GenerateNoticeLocalFilePath)' does not exist." />
+  </Target>
+
+  <!-- copy checked in file to output location -->
+  <Target Name="CopyLocalNoticeFileToOutput"
+          AfterTargets="GenerateNotice"
+          Condition="'$(GenerateNoticeUseLocalFile)' == 'true'"
+          Inputs="$(GenerateNoticeLocalFilePath)"
+          Outputs="$(GenerateNoticeOutputPath)">
+    <Copy SourceFiles="$(GenerateNoticeLocalFilePath)" DestinationFiles="$(GenerateNoticeOutputPath)" SkipUnchangedFiles="false" />
+  </Target>
+
+  <!-- generate notice file by using the API -->
+  <Target Name="GenerateNoticeFromApi"
+          AfterTargets="GenerateNotice"
+          Condition="'$(GenerateNoticeUseLocalFile)' != 'true'"
+          Inputs="@(GenerateNoticeAssetFile);@(GenerateNoticeNpmListJsonFile);$(GenerateNoticePreambleFile)"
+          Outputs="$(GenerateNoticeOutputPath)">
 
     <PropertyGroup>
       <_GenerateNoticeAssetFileParameter Condition="@(GenerateNoticeAssetFile) != ''">--asset-files @(GenerateNoticeAssetFile,' ')</_GenerateNoticeAssetFileParameter>
@@ -27,5 +49,15 @@
     <Exec 
       Command="dotnet $(GenerateNoticeAssemblyPath) $(_GenerateNoticeAssetFileParameter) $(_GenerateNoticeNpmListFileParameter) --output-file $(GenerateNoticeOutputPath) $(_PreambleFileParameter) $(_RetryCountParameter) $(_BatchSizeParameter)"
       WorkingDirectory="$(MSBuildProjectDirectory)" />
+  </Target>
+
+  <!-- update local file with generated notice file
+       inputs and outputs appear reversed, but that is intentional given the nature of this target -->
+  <Target Name="UpdateLocalNoticeFile"
+          AfterTargets="GenerateNoticeFromApi"
+          Condition="'$(GenerateNoticeUseLocalFile)' != 'true' and '$(GenerateNoticeUpdateLocalFile)' == 'true'"
+          Inputs="$(GenerateNoticeOutputPath)"
+          Outputs="$(GenerateNoticeUseLocalFile)">
+    <Copy SourceFiles="$(GenerateNoticeOutputPath)" DestinationFiles="$(GenerateNoticeUseLocalFile)" SkipUnchangedFiles="false" />
   </Target>
 </Project>
