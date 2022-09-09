@@ -57,7 +57,7 @@
           AfterTargets="GenerateNoticeFromApi"
           Condition="'$(GenerateNoticeUseLocalFile)' != 'true' and '$(GenerateNoticeUpdateLocalFile)' == 'true'"
           Inputs="$(GenerateNoticeOutputPath)"
-          Outputs="$(GenerateNoticeUseLocalFile)">
-    <Copy SourceFiles="$(GenerateNoticeOutputPath)" DestinationFiles="$(GenerateNoticeUseLocalFile)" SkipUnchangedFiles="false" />
+          Outputs="$(GenerateNoticeLocalFilePath)">
+    <Copy SourceFiles="$(GenerateNoticeOutputPath)" DestinationFiles="$(GenerateNoticeLocalFilePath)" SkipUnchangedFiles="false" />
   </Target>
 </Project>
