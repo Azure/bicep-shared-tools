@@ -5,7 +5,15 @@ VisualStudioVersion = 17.3.32804.467
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GenerateNotice", "src\GenerateNotice\GenerateNotice.csproj", "{703EA1D3-0922-4F2B-9E1A-243FF6D63097}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenerateNotice.IntegrationTests", "src\GenerateNotice.IntegrationTests\GenerateNotice.IntegrationTests.csproj", "{DA3ECF8A-5690-4159-9313-13C6AF37F593}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GenerateNotice.IntegrationTests", "src\GenerateNotice.IntegrationTests\GenerateNotice.IntegrationTests.csproj", "{DA3ECF8A-5690-4159-9313-13C6AF37F593}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "GenerateNotice", "GenerateNotice", "{EC34BD84-43A5-45FD-888D-5E597BD5C238}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SourceGenerators", "SourceGenerators", "{26CCC34C-9FB2-4410-B010-0702F507AFFF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bicep.RoslynAnalyzers", "src\Bicep.RoslynAnalyzers\Bicep.RoslynAnalyzers.csproj", "{E969D830-EF66-425E-BB8C-5529D0E57590}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bicep.RoslynAnalyzers.UnitTests", "src\Bicep.RoslynAnalyzers.UnitTests\Bicep.RoslynAnalyzers.UnitTests.csproj", "{83C55F6D-88D2-407E-A3E2-3807FF7BFED1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,9 +29,23 @@ Global
 		{DA3ECF8A-5690-4159-9313-13C6AF37F593}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DA3ECF8A-5690-4159-9313-13C6AF37F593}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DA3ECF8A-5690-4159-9313-13C6AF37F593}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E969D830-EF66-425E-BB8C-5529D0E57590}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E969D830-EF66-425E-BB8C-5529D0E57590}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E969D830-EF66-425E-BB8C-5529D0E57590}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E969D830-EF66-425E-BB8C-5529D0E57590}.Release|Any CPU.Build.0 = Release|Any CPU
+		{83C55F6D-88D2-407E-A3E2-3807FF7BFED1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{83C55F6D-88D2-407E-A3E2-3807FF7BFED1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{83C55F6D-88D2-407E-A3E2-3807FF7BFED1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{83C55F6D-88D2-407E-A3E2-3807FF7BFED1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{703EA1D3-0922-4F2B-9E1A-243FF6D63097} = {EC34BD84-43A5-45FD-888D-5E597BD5C238}
+		{DA3ECF8A-5690-4159-9313-13C6AF37F593} = {EC34BD84-43A5-45FD-888D-5E597BD5C238}
+		{E969D830-EF66-425E-BB8C-5529D0E57590} = {26CCC34C-9FB2-4410-B010-0702F507AFFF}
+		{83C55F6D-88D2-407E-A3E2-3807FF7BFED1} = {26CCC34C-9FB2-4410-B010-0702F507AFFF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9D13A6CA-37CA-4579-8293-390A09AC0A43}
