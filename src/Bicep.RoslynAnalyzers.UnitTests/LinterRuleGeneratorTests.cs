@@ -140,6 +140,14 @@ namespace MyOtherCode
     public class DerivedFromBase : BaseClass
     {
     }
+
+    public partial class DuplicatedDerivedFromBase : BaseClass
+    {
+    }
+
+    public partial class DuplicatedDerivedFromBase : BaseClass
+    {
+    }
 }
 ");
             // we are referencing an attribute that hasn't been generated yet, so there will be errors
@@ -168,6 +176,7 @@ namespace MyCode
             {
                 typeof(MyCode.DerivedFromInterfaceInProgram),
                 typeof(MyOtherCode.DerivedFromBase),
+                typeof(MyOtherCode.DuplicatedDerivedFromBase),
             };
         }
     }

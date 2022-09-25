@@ -183,6 +183,8 @@ using System.Collections.Generic;
             builder.AppendLine("            {");
 
             var ruleClassNames = linterRules
+                // remove duplicates
+                .Distinct()
                 .Select(rule => rule?.RuleClassSymbol.ToDisplayString())
                 .OrderBy(className => className);
 
