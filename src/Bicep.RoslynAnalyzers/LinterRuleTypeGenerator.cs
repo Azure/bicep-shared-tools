@@ -48,13 +48,15 @@ namespace {AttributeNamespace}
             // https://github.com/dotnet/roslyn/pull/63347
             var generatorMethods = initContext.SyntaxProvider
                 .CreateSyntaxProvider(
+                    // we are only interested in methods with some attribute
                     predicate: (syntax, cancellationToken) => syntax is MethodDeclarationSyntax method && method.AttributeLists.Count > 0,
                     transform: (syntaxContext, cancellationToken) => TryGetGeneratorMethodContext(syntaxContext, cancellationToken))
                 .Where(method => method is not null);
 
             var bicepAnalyzerRuleClasses = initContext.SyntaxProvider
                 .CreateSyntaxProvider(
-                    predicate: (syntax, cancellationToken) => syntax is ClassDeclarationSyntax,
+                    // we are interested in class declarations that specify base types
+                    predicate: (syntax, cancellationToken) => syntax is ClassDeclarationSyntax @class && @class.BaseList is not null && @class.BaseList.Types.Count > 0,
                     transform: (syntaxContext, cancellationToken) => TryGetLinterRuleContext(syntaxContext, cancellationToken))
                 .Where(ruleClass => ruleClass is not null);
 
@@ -93,7 +95,15 @@ namespace {AttributeNamespace}
                 return null;
             }
 
-            return new(method, classSymbol);
+            if(classSymbol.ContainingNamespace is null)
+            {
+                return null;
+            }
+
+            return new(
+                @namespace: classSymbol.ContainingNamespace.ToDisplayString(),
+                className: classSymbol.Name,
+                methodName: method.Identifier.ToString());
         }
 
         private static LinterRuleClassContext? TryGetLinterRuleContext(GeneratorSyntaxContext syntaxContext, CancellationToken cancellationToken)
@@ -146,7 +156,7 @@ namespace {AttributeNamespace}
         {
             var (generatorContext, linterRules) = info;
 
-            if (generatorContext?.ClassSymbol.ContainingNamespace is null)
+            if (generatorContext is null)
             {
                 return;
             }
@@ -160,13 +170,13 @@ using System.Collections.Generic;
 ");
                         
 
-            builder.AppendLine(@$"namespace {generatorContext.ClassSymbol.ContainingNamespace.ToDisplayString()}");
+            builder.AppendLine(@$"namespace {generatorContext.Namespace}");
             builder.AppendLine("{");
 
-            builder.AppendLine(@$"    public partial class {generatorContext.ClassSymbol.Name}");
+            builder.AppendLine(@$"    public partial class {generatorContext.ClassName}");
             builder.AppendLine("    {");
 
-            builder.AppendLine($@"        public partial IEnumerable<Type> {generatorContext.MethodSyntax.Identifier}()");
+            builder.AppendLine($@"        public partial IEnumerable<Type> {generatorContext.MethodName}()");
             builder.AppendLine("        {");
 
             builder.AppendLine("            return new Type[]");
@@ -187,7 +197,7 @@ using System.Collections.Generic;
             builder.AppendLine("    }");
             builder.AppendLine("}");
 
-            context.AddSource($"{nameof(LinterRuleTypeGenerator)}.{generatorContext.ClassSymbol.Name}.{generatorContext.MethodSyntax.Identifier}.g.cs", builder.ToString());
+            context.AddSource($"{nameof(LinterRuleTypeGenerator)}.{generatorContext.ClassName}.{generatorContext.MethodName}.g.cs", builder.ToString());
         }
     }
 }
