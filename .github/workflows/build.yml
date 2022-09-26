@@ -36,7 +36,7 @@ jobs:
       - name: Publish GenerateNotice tool
         run: dotnet publish --configuration Release ./src/GenerateNotice/GenerateNotice.csproj
       
-      - name: Build package
+      - name: Build GenerateNotice package
         run: dotnet build --configuration Release ./src/GenerateNotice.Nuget/nuget.proj
 
       - name: Upload GenerateNotice package
@@ -44,6 +44,16 @@ jobs:
         with:
           name: GenerateNotice-package
           path: ./src/GenerateNotice.Nuget/*.nupkg
+          if-no-files-found: error
+
+      - name: Pack
+        run: dotnet pack --configuration Release
+
+      - name: Upload Packages
+        uses: actions/upload-artifact@v3
+        with:
+          name: bicep-nupkg-any
+          path: out/*
           if-no-files-found: error
 
       - name: Test
