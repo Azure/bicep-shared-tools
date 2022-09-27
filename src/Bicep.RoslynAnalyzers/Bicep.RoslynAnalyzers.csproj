@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageId>Azure.Bicep.Internal.RoslynAnalyzers</PackageId>
     <!-- do not include the build output in the NuGet lib folder -->
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <!-- Enable our custom packaging targets -->

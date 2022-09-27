@@ -6,6 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>GenerateNotice</AssemblyName>
     <RootNamespace>Azure.Bicep.Tools.GenerateNotice</RootNamespace>
+    <!-- stop generating nupkg during dotnet pack (we have a separate project for that) -->
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>

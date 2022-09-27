@@ -1675,7 +1675,7 @@
           "System.Xml.ReaderWriter": "4.3.0"
         }
       },
-      "bicep.roslynanalyzers": {
+      "Azure.Bicep.Internal.RoslynAnalyzers": {
         "type": "Project"
       }
     }
