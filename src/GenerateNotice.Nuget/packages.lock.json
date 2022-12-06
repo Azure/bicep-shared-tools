@@ -20,9 +20,9 @@
       },
       "NuGet.CommandLine": {
         "type": "Direct",
-        "requested": "[6.2.1, )",
-        "resolved": "6.2.1",
-        "contentHash": "3HMYojJmwh2PAbXzRm99b9+RuDQ7aSrfLdCsCpNrWLHXR2xS628jJnMwPjslMPIbhTwNINic55p9ZnEzhNLkfA=="
+        "requested": "[6.3.1, )",
+        "resolved": "6.3.1",
+        "contentHash": "GYlR2Uq/cbL9anpMulAceUetsO33qT3VtJgz491s6Msv3+eTdKN7GboRQP9LXbL6tgR9XK3G2NHbpPvOg2p81A=="
       },
       "Microsoft.Build.Tasks.Git": {
         "type": "Transitive",
