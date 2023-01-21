@@ -202,7 +202,7 @@ namespace GenerateNotice.IntegrationTests
 
         private static string GetResultFilePath(TestContext testContext, string fileName)
         {
-            var fileDirectory = Path.Combine(testContext.ResultsDirectory, testContext.TestName);
+            var fileDirectory = Path.Combine(testContext.ResultsDirectory!, testContext.TestName!);
             Directory.CreateDirectory(fileDirectory);
 
             return Path.Combine(fileDirectory, fileName);
