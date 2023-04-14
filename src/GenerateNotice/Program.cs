@@ -4,13 +4,13 @@
 using OSS.GenerateNotice.Models;
 using System.Collections.Immutable;
 using System.CommandLine;
-using System.Linq;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Net;
 using Polly;
 using Polly.Extensions.Http;
+using Azure.Bicep.Tools.GenerateNotice;
 
 namespace OSS.GenerateNotice
 {
@@ -89,7 +89,7 @@ namespace OSS.GenerateNotice
 
                 return await rootCommand.InvokeAsync(args);
             }
-            catch(ApplicationException exception)
+            catch(GenerateNoticeException exception)
             {
                 Console.Error.WriteLine(exception.Message);
                 return 1;
@@ -218,7 +218,7 @@ namespace OSS.GenerateNotice
             if (response.StatusCode != HttpStatusCode.OK)
             {
                 var error = await response.Content.ReadAsStringAsync();
-                throw new ApplicationException(error);
+                throw new GenerateNoticeException(error);
             }
 
             var responseBody = await response.Content.ReadFromJsonAsync<NoticeResponse<NoticeResponseJsonContent>>(SerializerOptions) ?? throw new Exception("Unable to deserialize response.");
@@ -239,7 +239,7 @@ namespace OSS.GenerateNotice
             };
             Console.WriteLine($"{request.Method.ToString().ToUpperInvariant()} {request.RequestUri}");
             
-            var response = await client.SendAsync(request) ?? throw new ApplicationException("Null response was received.");
+            var response = await client.SendAsync(request) ?? throw new GenerateNoticeException("Null response was received.");
             Console.WriteLine($"  {response.StatusCode}");
             foreach (var header in response.Headers)
             {
@@ -251,7 +251,7 @@ namespace OSS.GenerateNotice
 
         private static async Task WriteNoticeFile(ImmutableArray<NoticeResponseJsonPackage> packages, string outputFilePath, string? preambleFilePath)
         {
-            var outputFileDirectory = Path.GetDirectoryName(outputFilePath) ?? throw new ApplicationException($"Unable to obtain directory path for file '{outputFilePath}'.");
+            var outputFileDirectory = Path.GetDirectoryName(outputFilePath) ?? throw new GenerateNoticeException($"Unable to obtain directory path for file '{outputFilePath}'.");
             Directory.CreateDirectory(outputFileDirectory);
 
             using var stream = File.OpenWrite(outputFilePath);
