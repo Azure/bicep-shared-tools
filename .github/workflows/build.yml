@@ -28,7 +28,7 @@ jobs:
           fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
 
       - name: Setup .NET Core
-        uses: actions/setup-dotnet@v3.0.3
+        uses: actions/setup-dotnet@v3.1.0
       
       - name: Build sln
         run: dotnet build --configuration Release
