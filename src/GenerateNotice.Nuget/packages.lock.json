@@ -1,7 +1,7 @@
 {
   "version": 1,
   "dependencies": {
-    "net7.0": {
+    "net8.0": {
       "Microsoft.SourceLink.GitHub": {
         "type": "Direct",
         "requested": "[1.1.1, )",
@@ -20,9 +20,9 @@
       },
       "NuGet.CommandLine": {
         "type": "Direct",
-        "requested": "[6.3.1, )",
-        "resolved": "6.3.1",
-        "contentHash": "GYlR2Uq/cbL9anpMulAceUetsO33qT3VtJgz491s6Msv3+eTdKN7GboRQP9LXbL6tgR9XK3G2NHbpPvOg2p81A=="
+        "requested": "[6.8.0, )",
+        "resolved": "6.8.0",
+        "contentHash": "d7L76jJHb40v4scpVMNAnYy/cFDHgc/ur6FmmXd1LyeFk96GCu0ieFHErCp77NQxah0LBJD2d52ODTTZWbMsJA=="
       },
       "Microsoft.Build.Tasks.Git": {
         "type": "Transitive",
