@@ -26,4 +26,9 @@
     <!-- ensure that the binary is included in the right directory so Roslyn can load it from the package -->
     <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers\dotnet\cs" Visible="false" />
   </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="Microsoft.SourceLink.GitHub" Version="8.0.0" />
+    <PackageReference Update="Nerdbank.GitVersioning" Version="3.6.133" />
+  </ItemGroup>
 </Project>
