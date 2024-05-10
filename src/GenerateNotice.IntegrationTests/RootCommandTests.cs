@@ -137,7 +137,11 @@ namespace GenerateNotice.IntegrationTests
                 "FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE");
         }
 
-        [TestMethod]
+        /*
+         * This test makes an outgoing call to the notices API, which is rather flaky.
+         * Disabling for now until we can improve the test or switch to mocked responses.
+         */
+        //[TestMethod]
         public async Task CombinedMultipleNuGetAndNpmFilesWithPreambleShouldGenerateNoticeFile()
         {
             var nugetFile1 = await ReadFileFromStreamAsync(this.TestContext, "bicep.cli.project.assets.json");
@@ -152,7 +156,9 @@ namespace GenerateNotice.IntegrationTests
                 assetfiles: new[] { nugetFile1, nugetFile2 },
                 npmListAllFiles: new[] { npmFile1, npmFile2 },
                 outputFile: outputFile,
-                preambleFile: preambleFile);
+                preambleFile: preambleFile,
+                retryCount: 5,
+                timeoutSeconds: 200);
 
             result.ExitCode.Should().Be(0);
             result.StdErr.Should().BeEmpty();
@@ -208,12 +214,12 @@ namespace GenerateNotice.IntegrationTests
             return Path.Combine(fileDirectory, fileName);
         }
 
-        private static Task<ToolResult> GenerateNoticeAsync(TestContext testContext,IList<string> assetfiles, IList<string> npmListAllFiles, string outputFile, string? preambleFile)
+        private static Task<ToolResult> GenerateNoticeAsync(TestContext testContext,IList<string> assetfiles, IList<string> npmListAllFiles, string outputFile, string? preambleFile, int? batchSize = null, int? retryCount = null, int? timeoutSeconds = null)
         {
-            return GenerateNoticeAsync(testContext, CreateArguments(assetfiles, npmListAllFiles, outputFile, preambleFile));
+            return GenerateNoticeAsync(testContext, CreateArguments(assetfiles, npmListAllFiles, outputFile, preambleFile, batchSize, retryCount, timeoutSeconds));
         }
 
-        private static string CreateArguments(IList<string> assetfiles, IList<string> npmListAllFiles, string outputFile, string? preambleFile)
+        private static string CreateArguments(IList<string> assetfiles, IList<string> npmListAllFiles, string outputFile, string? preambleFile, int? batchSize, int? retryCount, int? timeoutSeconds)
         {
             var buffer = new StringBuilder();
 
@@ -251,6 +257,27 @@ namespace GenerateNotice.IntegrationTests
             {
                 buffer.Append("--preamble-file ");
                 AppendFile(preambleFile);
+            }
+
+            if (batchSize.HasValue)
+            {
+                buffer.Append("--batch-size ");
+                buffer.Append(batchSize.Value);
+                buffer.Append(' ');
+            }
+
+            if (retryCount.HasValue)
+            {
+                buffer.Append("--retry-count ");
+                buffer.Append(retryCount.Value);
+                buffer.Append(' ');
+            }
+
+            if(timeoutSeconds.HasValue)
+            {
+                buffer.Append("--timeout-seconds ");
+                buffer.Append(timeoutSeconds.Value);
+                buffer.Append(' ');
             }
 
             return buffer.ToString();

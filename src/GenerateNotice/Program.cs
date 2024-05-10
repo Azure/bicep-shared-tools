@@ -27,6 +27,9 @@ namespace OSS.GenerateNotice
             const int DefaultBatchSize = 100;
             const int DefaultRetryCount = 3;
 
+            // the notice API is very slow, so we need to increase the timeout
+            const int DefaultTimeoutSeconds = 200;
+
             var rootCommand = new RootCommand("Third-party notice generator");
 
             var assetFilesOption = new Option<List<string>>("--asset-files", "One or more paths to project.assets.json file(s).")
@@ -63,37 +66,36 @@ namespace OSS.GenerateNotice
                 IsRequired = false
             };
 
+            var timeoutOptionSecondsOption = new Option<int?>("--timeout-seconds", $"Timeout in seconds for each API call. The default is {DefaultTimeoutSeconds}.")
+            {
+                IsRequired = false
+            };
+
             rootCommand.AddOption(assetFilesOption);
             rootCommand.AddOption(npmListJsonFilesOption);
             rootCommand.AddOption(outputOption);
             rootCommand.AddOption(preambleFileOption);
             rootCommand.AddOption(batchSizeOption);
             rootCommand.AddOption(retryCountOption);
+            rootCommand.AddOption(timeoutOptionSecondsOption);
 
-            try
+            rootCommand.SetHandler((assetFiles, npmListJsonFiles, outputFile, preambleFile, batchSize, retryCount, timeoutSeconds) =>
             {
-                rootCommand.SetHandler(async (assetFiles, npmListJsonFiles, outputFile, preambleFile, batchSize, retryCount) =>
-                {
-                    var arguments = new ToolArguments
-                    (
-                        AssetFiles: assetFiles.Select(ResolvePath).ToImmutableArray(),
-                        NpmListJsonFiles: npmListJsonFiles.Select(ResolvePath).ToImmutableArray(),
-                        OutputFile: ResolvePath(outputFile),
-                        PreambleFile: ResolveOptionalPath(preambleFile),
-                        BatchSize: batchSize ?? DefaultBatchSize,
-                        RetryCount: retryCount ?? DefaultRetryCount
-                    );
+                var arguments = new ToolArguments
+                (
+                    AssetFiles: assetFiles.Select(ResolvePath).ToImmutableArray(),
+                    NpmListJsonFiles: npmListJsonFiles.Select(ResolvePath).ToImmutableArray(),
+                    OutputFile: ResolvePath(outputFile),
+                    PreambleFile: ResolveOptionalPath(preambleFile),
+                    BatchSize: batchSize ?? DefaultBatchSize,
+                    RetryCount: retryCount ?? DefaultRetryCount,
+                    Timeout: TimeSpan.FromSeconds(timeoutSeconds ?? DefaultTimeoutSeconds)
+                );
 
-                    await MainInternal(arguments);
-                }, assetFilesOption, npmListJsonFilesOption, outputOption, preambleFileOption, batchSizeOption, retryCountOption);
+                return MainInternal(arguments);
+            }, assetFilesOption, npmListJsonFilesOption, outputOption, preambleFileOption, batchSizeOption, retryCountOption, timeoutOptionSecondsOption);
 
-                return await rootCommand.InvokeAsync(args);
-            }
-            catch(GenerateNoticeException exception)
-            {
-                Console.Error.WriteLine(exception.Message);
-                return 1;
-            }
+            return await rootCommand.InvokeAsync(args);
         }
 
         public record ToolArguments(
@@ -102,58 +104,75 @@ namespace OSS.GenerateNotice
             string OutputFile,
             string? PreambleFile,
             int BatchSize,
-            int RetryCount);
+            int RetryCount,
+            TimeSpan Timeout);
 
-        private static async Task MainInternal(ToolArguments arguments)
+        private static async Task<int> MainInternal(ToolArguments arguments)
         {
-            var nugetDependencies = arguments.AssetFiles
-                .Select(assetFilePath => DeserializeFile<ProjectAssetsFile>(assetFilePath))
-                .SelectMany(assetFile => assetFile.Libraries.Values)
-                .Where(library => string.Equals(library.Type, "package", StringComparison.OrdinalIgnoreCase))
-                .Select(library => library.Path)
-                .Distinct()
-                .ToImmutableArray();
-
-            Console.WriteLine($"NuGet dependency count = {nugetDependencies.Length}");
-            
-            var npmDependencies = arguments.NpmListJsonFiles
-                .Select(npmListJsonFile => DeserializeFile<NpmListJsonFile>(npmListJsonFile))
-                .SelectMany(file => SelectAllDependencies(file))
-                .Distinct()
-                .ToImmutableArray();
-            Console.WriteLine($"NPM dependency count = {npmDependencies.Length}");
-
-            Console.WriteLine($"Total count = {nugetDependencies.Length + npmDependencies.Length}");
-
-            var client = new HttpClient();
-            client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-            var requests = CreateNoticeRequests(nugetDependencies, npmDependencies, arguments.BatchSize);
-
-            // the ClearlyDefined service API has higher chances of failure with larger batch sizes
-            // Component Governance uses a batch size of 100
-            var processedCoordinates = 0;
-            var responses = new List<NoticeResponse<NoticeResponseJsonContent>>();
-            for(int i = 0; i < requests.Length; i++)
+            try
             {
-                var request = requests[i];
+                var nugetDependencies = arguments.AssetFiles
+                    .Select(assetFilePath => DeserializeFile<ProjectAssetsFile>(assetFilePath))
+                    .SelectMany(assetFile => assetFile.Libraries.Values)
+                    .Where(library => string.Equals(library.Type, "package", StringComparison.OrdinalIgnoreCase))
+                    .Select(library => library.Path)
+                    .Distinct()
+                    .ToImmutableArray();
 
-                Console.WriteLine($"Starting batch {i} ({processedCoordinates}..{processedCoordinates + request.Coordinates.Length - 1})");
+                Console.WriteLine($"NuGet dependency count = {nugetDependencies.Length}");
 
-                responses.Add(await InvokeNoticeApi(client, request, arguments.RetryCount));
+                var npmDependencies = arguments.NpmListJsonFiles
+                    .Select(npmListJsonFile => DeserializeFile<NpmListJsonFile>(npmListJsonFile))
+                    .SelectMany(file => SelectAllDependencies(file))
+                    .Distinct()
+                    .ToImmutableArray();
+                Console.WriteLine($"NPM dependency count = {npmDependencies.Length}");
 
-                Console.WriteLine($"Completed batch {i}");
-                processedCoordinates += request.Coordinates.Length;
+                Console.WriteLine($"Total count = {nugetDependencies.Length + npmDependencies.Length}");
+
+                var client = new HttpClient();
+                client.Timeout = arguments.Timeout;
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                var requests = CreateNoticeRequests(nugetDependencies, npmDependencies, arguments.BatchSize);
+
+                // the ClearlyDefined service API has higher chances of failure with larger batch sizes
+                // Component Governance uses a batch size of 100
+                var processedCoordinates = 0;
+                var responses = new List<NoticeResponse<NoticeResponseJsonContent>>();
+                for (int i = 0; i < requests.Length; i++)
+                {
+                    var request = requests[i];
+
+                    Console.WriteLine($"Starting batch {i} ({processedCoordinates}..{processedCoordinates + request.Coordinates.Length - 1})");
+
+                    responses.Add(await InvokeNoticeApi(client, request, arguments.RetryCount));
+
+                    Console.WriteLine($"Completed batch {i}");
+                    processedCoordinates += request.Coordinates.Length;
+                }
+
+                // aggregate all the responses together
+                var packages = responses
+                    .SelectMany(response => response.Content.Packages)
+                    .ToImmutableArray();
+
+                await WriteNoticeFile(packages, arguments.OutputFile, arguments.PreambleFile);
+                Console.WriteLine($"NOTICE file saved to '{arguments.OutputFile}'.");
+
+                return 0;
             }
-
-            // aggregate all the responses together
-            var packages = responses
-                .SelectMany(response => response.Content.Packages)
-                .ToImmutableArray();
-
-            await WriteNoticeFile(packages, arguments.OutputFile, arguments.PreambleFile);
-            Console.WriteLine($"NOTICE file saved to '{arguments.OutputFile}'.");
+            catch (GenerateNoticeException exception)
+            {
+                Console.Error.WriteLine(exception.Message);
+                return 1;
+            }
+            catch (Exception exception)
+            {
+                Console.Error.WriteLine(exception.ToString());
+                return 2;
+            }
         }
 
         private static string? ResolveOptionalPath(string? path) => path is null ? null : ResolvePath(path);
@@ -211,7 +230,8 @@ namespace OSS.GenerateNotice
         {
             var response = await HttpPolicyExtensions
                 .HandleTransientHttpError()
-                .OrResult(response => response.StatusCode == HttpStatusCode.TooManyRequests)
+                // the underlying API is built on CloudFlare which uses custom codes like 524 for timeouts
+                .OrResult(response => response.StatusCode == HttpStatusCode.TooManyRequests || ((int)response.StatusCode == 524))
                 .WaitAndRetryAsync(retryCount, retryAttempt => TimeSpan.FromSeconds(retryAttempt * 10), (result, delay) => Console.WriteLine($"Retrying after {delay}..."))
                 .ExecuteAsync(() => InvokeNoticeApi(client, requestBody));
 
