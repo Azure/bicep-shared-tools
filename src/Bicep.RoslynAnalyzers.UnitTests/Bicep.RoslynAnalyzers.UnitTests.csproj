@@ -9,25 +9,24 @@
 
   <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="6.12.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.9.2" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.MSTest" Version="1.1.1" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.9.2" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
-    <PackageReference Include="MSTest.TestAdapter" Version="3.3.1" />
-    <PackageReference Include="MSTest.TestFramework" Version="3.3.1" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.10.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.MSTest" Version="1.1.2" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.10.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="3.4.3" />
+    <PackageReference Include="MSTest.TestFramework" Version="3.4.3" />
     <PackageReference Include="coverlet.collector" Version="6.0.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <!-- 
+      This package is not used directly. 
+      Using this package ref to bump a transitive package version to address a vulnerability. 
+    -->
+    <PackageReference Include="NuGet.Packaging" Version="6.10.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Bicep.RoslynAnalyzers\Bicep.RoslynAnalyzers.csproj" />
   </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Update="Microsoft.SourceLink.GitHub" Version="8.0.0" />
-    <PackageReference Update="Nerdbank.GitVersioning" Version="3.6.133" />
-  </ItemGroup>
-
 </Project>
