@@ -20,10 +20,11 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <!-- 
-      This package is not used directly. 
-      Using this package ref to bump a transitive package version to address a vulnerability. 
+      The two packages below are not used directly. 
+      Using these package refs to bump a transitive package version to address a vulnerability.
     -->
     <PackageReference Include="NuGet.Packaging" Version="6.11.1" />
+    <PackageReference Include="System.Formats.Asn1" Version="6.0.1" />
   </ItemGroup>
 
   <ItemGroup>
