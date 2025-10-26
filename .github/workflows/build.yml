@@ -49,7 +49,7 @@ jobs:
         run: dotnet build --configuration Release ./src/GenerateNotice.Nuget/nuget.proj
 
       - name: Upload GenerateNotice package
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: GenerateNotice-package
           path: ./src/GenerateNotice.Nuget/*.nupkg
@@ -59,7 +59,7 @@ jobs:
         run: dotnet pack --configuration Release
 
       - name: Upload Packages
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: bicep-nupkg-any
           path: out/*
