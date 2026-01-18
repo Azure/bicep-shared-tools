@@ -37,7 +37,7 @@ jobs:
           languages: csharp
 
       - name: Setup .NET Core
-        uses: actions/setup-dotnet@v5.0.1
+        uses: actions/setup-dotnet@v5.1.0
       
       - name: Build sln
         run: dotnet build --configuration Release
