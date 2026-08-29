@@ -27,17 +27,17 @@ jobs:
       DOTNET_CLI_TELEMETRY_OPTOUT: true
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v4
+        uses: github/codeql-action/init@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
         with:
           languages: csharp
 
       - name: Setup .NET Core
-        uses: actions/setup-dotnet@v6.0.0
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
       
       - name: Build sln
         run: dotnet build --configuration Release
@@ -49,7 +49,7 @@ jobs:
         run: dotnet build --configuration Release ./src/GenerateNotice.Nuget/nuget.proj
 
       - name: Upload GenerateNotice package
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: GenerateNotice-package
           path: ./src/GenerateNotice.Nuget/*.nupkg
@@ -59,7 +59,7 @@ jobs:
         run: dotnet pack --configuration Release
 
       - name: Upload Packages
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: bicep-nupkg-any
           path: out/*
@@ -69,9 +69,9 @@ jobs:
         run: dotnet test --configuration Release --collect:"XPlat Code Coverage" --settings ./.github/workflows/codecov.runsettings
 
       - name: Upload Code Coverage
-        uses: codecov/codecov-action@v7
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           flags: dotnet
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v4
+        uses: github/codeql-action/analyze@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
