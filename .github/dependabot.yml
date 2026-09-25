@@ -12,6 +12,10 @@ updates:
       day: "sunday"
     cooldown:
       default-days: 7
+    groups:
+      github-actions:
+        patterns:
+          - "*"
   - package-ecosystem: "nuget"
     directory: "/"
     schedule:
@@ -20,6 +24,10 @@ updates:
     ignore:
       - dependency-name: "Moq"
       - dependency-name: "FluentAssertions"
+    groups:
+      nuget:
+        patterns:
+          - "*"
   - package-ecosystem: dotnet-sdk
     directory: /
     schedule:
