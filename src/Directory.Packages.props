@@ -5,7 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <GlobalPackageReference Include="Nerdbank.GitVersioning" Version="3.10.94" />
-    <GlobalPackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.401" />
+    <GlobalPackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.402" />
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="FluentAssertions" Version="7.2.1" />
@@ -15,12 +15,12 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="5.9.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.MSTest" Version="1.1.2" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="5.9.0" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.10.1" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
     <PackageVersion Include="NuGet.CommandLine" Version="6.10.0" />
     <PackageVersion Include="NuGet.Packaging" Version="7.9.0" />
     <PackageVersion Include="Polly" Version="8.8.0" />
     <PackageVersion Include="Polly.Extensions.Http" Version="3.0.0" />
-    <PackageVersion Include="System.CommandLine" Version="2.0.12" />
+    <PackageVersion Include="System.CommandLine" Version="2.0.13" />
     <PackageVersion Include="System.CommandLine.Hosting" Version="0.4.0-alpha.25306.1" />
     <PackageVersion Include="System.Formats.Asn1" Version="6.0.1" />
     <PackageVersion Include="System.Net.Http.Json" Version="8.0.1" />
